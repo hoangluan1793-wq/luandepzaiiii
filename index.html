@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Luan Dep Trai</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- MÀN HÌNH CHỌN HSK -->
+    <div id="menuScreen" class="screen">
+        <div class="menu-box">
+            <h1>Luyện từ vựng HSK</h1>
+            <p class="subtitle">Chọn cấp độ</p>
+
+            <button class="level-btn hsk1" onclick="startGame(1)">
+                HSK 1
+                <span>Chỉ từ vựng HSK 1</span>
+            </button>
+
+            <button class="level-btn hsk2" onclick="startGame(2)">
+                HSK 2
+                <span>Chỉ từ vựng HSK 2</span>
+            </button>
+
+            <button class="level-btn mixed" onclick="startGame(12)">
+                HSK 1 + HSK 2
+                <span>Trộn cả hai cấp độ</span>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- GAME -->
+    <div id="gameScreen" class="game-container">
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="top-panel">
+
+    <div>
+        Điểm:
+        <strong id="score">0</strong>
+    </div>
+
+    <div>
+        Đã thuộc:
+        <strong id="correct">0/0</strong>
+    </div>
+
+    <div>
+        <strong id="levelDisplay">HSK 1</strong>
+    </div>
+
+    <button id="pauseBtn">⏸ DỪNG</button>
+
+</div>
+        <div class="input-panel">
+            <input
+                id="answerInput"
+                type="text"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="Nhập Pinyin..."
+            >
+
+            <button id="shootBtn">🚀 BẮN</button>
+        </div>
+
+        <div id="message"></div>
+
+
+        <!-- MÀN HÌNH DỪNG -->
+        <div id="pauseScreen" class="overlay">
+            <div class="pause-box">
+
+                <h2>⏸ GAME ĐÃ DỪNG</h2>
+
+                <p>
+                    Điểm:
+                    <strong id="pauseScore">0</strong>
+                </p>
+
+                <p>
+                    Số câu đúng:
+                    <strong id="pauseCorrect">0</strong>
+                </p>
+
+                <button id="resumeBtn">▶ TIẾP TỤC</button>
+                <button id="restartBtn">🔄 CHƠI LẠI</button>
+                <button id="menuBtn">🏠 CHỌN CẤP ĐỘ</button>
+
+            </div>
+        </div>
+
+
+        <!-- THẮNG -->
+        <div id="winScreen" class="overlay">
+            <div class="pause-box">
+
+                <h2>🎉 HOÀN THÀNH!</h2>
+
+                <p>
+                    Điểm:
+                    <strong id="winScore">0</strong>
+                </p>
+
+                <p>
+                    Số câu đúng:
+                    <strong id="winCorrect">0</strong>
+                </p>
+
+                <button id="winRestartBtn">🔄 CHƠI LẠI</button>
+                <button id="winMenuBtn">🏠 CHỌN CẤP ĐỘ</button>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
