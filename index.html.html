@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện chữ Hán HSK2 - 153 Từ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f1ea;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .stats {
+            font-size: 14px;
+            color: #666;
+        }
+        .card-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .hanzi-display {
+            font-size: 48px; /* Đã thu nhỏ lại cho dễ nhìn, không bị vỡ nét */
+            text-align: center;
+            margin-bottom: 15px;
+            color: #b22222;
+            font-weight: bold;
+            letter-spacing: 2px;
+            word-break: break-all;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-check {
+            background-color: #333;
+            color: #fff;
+        }
+        .btn-skip {
+            background-color: #e0dcd0;
+            color: #333;
+            width: 100%;
+            margin-top: 5px;
+        }
+        .btn-next {
+            background-color: #4a7c59;
+            color: #fff;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .ai-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .ai-section h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+        .ai-section p {
+            font-size: 13px;
+            color: #666;
+        }
+        .btn-ai {
+            background-color: #8b3a3a;
+            color: #fff;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .result-message {
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>练习 · Luyện chữ Hán HSK2</h2>
+        <div class="stats" id="stats">Đã học 1/153 · Đúng 0</div>
+    </div>
+
+    <!-- Thẻ học chữ Hán -->
+    <div class="card-box">
+        <div class="hanzi-display" id="hanziCard">字</div>
+        <div class="input-group">
+            <input type="text" id="pinyinInput" placeholder="Gõ pinyin của chữ này (không cần dấu thanh)...">
+            <button class="btn-check" onclick="checkAnswer()">Kiểm tra</button>
+        </div>
+        <button class="btn-skip" onclick="skipAndShowAnswer()">Bỏ qua / Xem đáp án</button>
+        <button class="btn-next" onclick="nextCard()">Chuyển từ tiếp theo ➔</button>
+        <div class="result-message" id="resultMsg"></div>
+    </div>
+
+    <!-- Phần đặt câu với AI -->
+    <div class="ai-section">
+        <h3>Đặt câu với từ này</h3>
+        <p>Thử viết một câu tiếng Trung dùng từ vừa học, rồi nhờ AI kiểm tra giúp bạn.</p>
+        <div class="input-group" style="margin-bottom: 10px;">
+            <input type="text" id="apiKeyInput" placeholder="Dán Gemini API key của bạn vào đây (chỉ lưu tạm trên trình duyệt)...">
+        </div>
+        <div class="input-group">
+            <input type="text" id="userSentence" placeholder="Viết câu của bạn bằng chữ Hán ở đây...">
+        </div>
+        <button class="btn-ai" onclick="checkSentenceWithAI()">Nhờ AI sửa câu</button>
+        <div class="result-message" id="aiResultMsg"></div>
+    </div>
+</div>
+
+<script>
+    // Danh sách đầy đủ 153 từ vựng chuẩn HSK2
+    const originalList = [
+        { hanzi: "吧", pinyinNoTone: "ba", pinyinTone: "ba", meaning: "nhỉ, nhé (trợ từ)" },
+        { hanzi: "白", pinyinNoTone: "bai", pinyinTone: "bái", meaning: "trắng" },
+        { hanzi: "百", pinyinNoTone: "bai", pinyinTone: "bǎi", meaning: "trăm" },
+        { hanzi: "帮助", pinyinNoTone: "bangzhu", pinyinTone: "bāngzhù", meaning: "giúp đỡ" },
+        { hanzi: "报纸", pinyinNoTone: "baozhi", pinyinTone: "bàozhǐ", meaning: "báo chí" },
+        { hanzi: "比", pinyinNoTone: "bi", pinyinTone: "bǐ", meaning: "so với" },
+        { hanzi: "别", pinyinNoTone: "bie", pinyinTone: "bié", meaning: "đừng, khác" },
+        { hanzi: "宾馆", pinyinNoTone: "binguan", pinyinTone: "bīnguǎn", meaning: "khách sạn" },
+        { hanzi: "长", pinyinNoTone: "chang", pinyinTone: "cháng", meaning: "dài" },
+        { hanzi: "唱歌", pinyinNoTone: "changge", pinyinTone: "chànggē", meaning: "ca hát" },
+        { hanzi: "出", pinyinNoTone: "chu", pinyinTone: "chū", meaning: "ra" },
+        { hanzi: "穿", pinyinNoTone: "chuan", pinyinTone: "chuān", meaning: "mặc" },
+        { hanzi: "次", pinyinNoTone: "ci", pinyinTone: "cì", meaning: "lần" },
+        { hanzi: "从", pinyinNoTone: "cong", pinyinTone: "cóng", meaning: "từ" },
+        { hanzi: "错", pinyinNoTone: "cuo", pinyinTone: "cuò", meaning: "sai" },
+        { hanzi: "打篮球", pinyinNoTone: "dalanqiu", pinyinTone: "dǎ lánqiú", meaning: "đánh bóng rổ" },
+        { hanzi: "大家", pinyinNoTone: "dajia", pinyinTone: "dàjiā", meaning: "mọi người" },
+        { hanzi: "但是", pinyinNoTone: "danshi", pinyinTone: "dànshì", meaning: "nhưng mà" },
+        { hanzi: "到", pinyinNoTone: "dao", pinyinTone: "dào", meaning: "đến" },
+        { hanzi: "得", pinyinNoTone: "de", pinyinTone: "de", meaning: "trợ từ kết cấu" },
+        { hanzi: "等", pinyinNoTone: "deng", pinyinTone: "děng", meaning: "đợi, chờ" },
+        { hanzi: "弟弟", pinyinNoTone: "didi", pinyinTone: "dìdi", meaning: "em trai" },
+        { hanzi: "第一", pinyinNoTone: "diyiyi", pinyinTone: "dì yī", meaning: "thứ nhất, đầu tiên" },
+        { hanzi: "懂", pinyinNoTone: "dong", pinyinTone: "dǒng", meaning: "hiểu" },
+        { hanzi: "对", pinyinNoTone: "dui", pinyinTone: "duì", meaning: "đối với, đúng" },
+        { hanzi: "房间", pinyinNoTone: "fangjian", pinyinTone: "fángjiān", meaning: "phòng, căn phòng" },
+        { hanzi: "非常", pinyinNoTone: "feichang", pinyinTone: "fēicháng", meaning: "vô cùng, cực kỳ" },
+        { hanzi: "服务员", pinyinNoTone: "fuwuyuan", pinyinTone: "fúwùyuán", meaning: "nhân viên phục vụ" },
+        { hanzi: "高", pinyinNoTone: "gao", pinyinTone: "gāo", meaning: "cao" },
+        { hanzi: "告诉", pinyinNoTone: "gaosu", pinyinTone: "gàosù", meaning: "nói cho biết, thông báo" },
+        { hanzi: "哥哥", pinyinNoTone: "gege", pinyinTone: "gēge", meaning: "anh trai" },
+        { hanzi: "给", pinyinNoTone: "gei", pinyinTone: "gěi", meaning: "cho, đưa cho" },
+        { hanzi: "公共汽车", pinyinNoTone: "gonggongqiche", pinyinTone: "gōnggòng qìchē", meaning: "xe buýt" },
+        { hanzi: "公司", pinyinNoTone: "gongsi", pinyinTone: "gōngsī", meaning: "công ty" },
+        { hanzi: "贵", pinyinNoTone: "gui", pinyinTone: "guì", meaning: "đắt, quý" },
+        { hanzi: "还", pinyinNoTone: "hai", pinyinTone: "hái", meaning: "còn, vẫn" },
+        { hanzi: "孩子", pinyinNoTone: "haizi", pinyinTone: "háizi", meaning: "con cái, trẻ em" },
+        { hanzi: "好吃", pinyinNoTone: "haochi", pinyinTone: "hǎochī", meaning: "ngon" },
+        { hanzi: "黑", pinyinNoTone: "hei", pinyinTone: "hēi", meaning: "đen" },
+        { hanzi: "红", pinyinNoTone: "hong", pinyinTone: "hóng", meaning: "đỏ" },
+        { hanzi: "机场", pinyinNoTone: "jichang", pinyinTone: "jīchǎng", meaning: "sân bay" },
+        { hanzi: "鸡蛋", pinyinNoTone: "jidan", pinyinTone: "jīdàn", meaning: "trứng gà" },
+        { hanzi: "件", pinyinNoTone: "jian", pinyinTone: "jiàn", meaning: "chiếc, kiện (lượng từ)" },
+        { hanzi: "教室", pinyinNoTone: "jiaoshi", pinyinTone: "jiàoshì", meaning: "phòng học" },
+        { hanzi: "姐姐", pinyinNoTone: "jiejie", pinyinTone: "jiějie", meaning: "chị gái" },
+        { hanzi: "介绍", pinyinNoTone: "jieshao", pinyinTone: "jièshào", meaning: "giới thiệu" },
+        { hanzi: "进", pinyinNoTone: "jin", pinyinTone: "jìn", meaning: "vào, tiến vào" },
+        { hanzi: "近", pinyinNoTone: "jin", pinyinTone: "jìn", meaning: "gần" },
+        { hanzi: "就", pinyinNoTone: "jiu", pinyinTone: "jiù", meaning: "thì, chính là" },
+        { hanzi: "觉得", pinyinNoTone: "juede", pinyinTone: "juéde", meaning: "cảm thấy" },
+        { hanzi: "咖啡", pinyinNoTone: "kafei", pinyinTone: "kāfēi", meaning: "cà phê" },
+        { hanzi: "开始", pinyinNoTone: "kaishi", pinyinTone: "kāishǐ", meaning: "bắt đầu" },
+        { hanzi: "考试", pinyinNoTone: "kaoshi", pinyinTone: "kǎoshì", meaning: "thi, kỳ thi" },
+        { hanzi: "可能", pinyinNoTone: "keneng", pinyinTone: "kěnéng", meaning: "có thể, có lẽ" },
+        { hanzi: "可以", pinyinNoTone: "keyi", pinyinTone: "kěyǐ", meaning: "có thể, được" },
+        { hanzi: "课", pinyinNoTone: "ke", pinyinTone: "kè", meaning: "bài học" },
+        { hanzi: "快", pinyinNoTone: "kuai", pinyinTone: "kuài", meaning: "nhanh, vui vẻ" },
+        { hanzi: "快乐", pinyinNoTone: "kuaile", pinyinTone: "kuàilè", meaning: "vui vẻ, hạnh phúc" },
+        { hanzi: "累", pinyinNoTone: "lei", pinyinTone: "lèi", meaning: "mệt" },
+        { hanzi: "离", pinyinNoTone: "li", pinyinTone: "lí", meaning: "cách" },
+        { hanzi: "两", pinyinNoTone: "liang", pinyinTone: "liǎng", meaning: "hai (số từ)" },
+        { hanzi: "零", pinyinNoTone: "ling", pinyinTone: "líng", meaning: "số không (0)" },
+        { hanzi: "路", pinyinNoTone: "lu", pinyinTone: "lù", meaning: "đường, tuyến đường" },
+        { hanzi: "旅游", pinyinNoTone: "lvyou", pinyinTone: "lǚyóu", meaning: "du lịch" },
+        { hanzi: "卖", pinyinNoTone: "mai", pinyinTone: "mài", meaning: "bán" },
+        { hanzi: "慢", pinyinNoTone: "man", pinyinTone: "màn", meaning: "chậm" },
+        { hanzi: "忙", pinyinNoTone: "mang", pinyinTone: "máng", meaning: "bận" },
+        { hanzi: "每", pinyinNoTone: "mei", pinyinTone: "měi", meaning: "mỗi" },
+        { hanzi: "妹妹", pinyinNoTone: "meimei", pinyinTone: "mèimei", meaning: "em gái" },
+        { hanzi: "门", pinyinNoTone: "men", pinyinTone: "mén", meaning: "cửa" },
+        { hanzi: "米饭", pinyinNoTone: "mifan", pinyinTone: "mǐfàn", meaning: "cơm" },
+        { hanzi: "明天", pinyinNoTone: "mingtian", pinyinTone: "míngtiān", meaning: "ngày mai" },
+        { hanzi: "名字", pinyinNoTone: "mingzi", pinyinTone: "míngzi", meaning: "tên" },
+        { hanzi: "拿", pinyinNoTone: "na", pinyinTone: "ná", meaning: "cầm, lấy" },
+        { hanzi: "哪", pinyinNoTone: "na", pinyinTone: "nǎ", meaning: "nào, ở đâu" },
+        { hanzi: "那", pinyinNoTone: "na", pinyinTone: "nà", meaning: "kia, đó" },
+        { hanzi: "呢", pinyinNoTone: "ne", pinyinTone: "ne", meaning: "nhỉ, nhé (trợ từ)" },
+        { hanzi: "能", pinyinNoTone: "neng", pinyinTone: "néng", meaning: "có thể" },
+        { hanzi: "你", pinyinNoTone: "ni", pinyinTone: "nǐ", meaning: "bạn, cậu" },
+        { hanzi: "年", pinyinNoTone: "nian", pinyinTone: "nián", meaning: "năm" },
+        { hanzi: "您", pinyinNoTone: "nin", pinyinTone: "nín", meaning: "ngài, ông/bà (lịch sự)" },
+        { hanzi: "牛奶", pinyinNoTone: "niunai", pinyinTone: "niúnǎi", meaning: "sữa bò" },
+        { hanzi: "女", pinyinNoTone: "nu", pinyinTone: "nǚ", meaning: "nữ, con gái" },
+        { hanzi: "旁边", pinyinNoTone: "pangbian", pinyinTone: "pángbiān", meaning: "bên cạnh" },
+        { hanzi: "跑步", pinyinNoTone: "paobu", pinyinTone: "pǎobù", meaning: "chạy bộ" },
+        { hanzi: "便宜", pinyinNoTone: "pianyiyi", pinyinTone: "piányi", meaning: "rẻ" },
+        { hanzi: "票", pinyinNoTone: "piao", pinyinTone: "piào", meaning: "vé" },
+        { hanzi: "妻子", pinyinNoTone: "qizi", pinyinTone: "qīzi", meaning: "vợ" },
+        { hanzi: "起床", pinyinNoTone: "qichuang", pinyinTone: "qǐchuáng", meaning: "thức dậy, ngủ dậy" },
+        { hanzi: "千", pinyinNoTone: "qian", pinyinTone: "qiān", meaning: "nghìn, ngàn" },
+        { hanzi: "铅笔", pinyinNoTone: "qianbi", pinyinTone: "qiānbǐ", meaning: "bút chì" },
+        { hanzi: "晴", pinyinNoTone: "qing", pinyinTone: "qíng", meaning: "trời nắng, trong trẻo" },
+        { hanzi: "去年", pinyinNoTone: "qunian", pinyinTone: "qùnián", meaning: "năm ngoái" },
+        { hanzi: "让", pinyinNoTone: "rang", pinyinTone: "ràng", meaning: "nhường, bảo, khiến" },
+        { hanzi: "日", pinyinNoTone: "ri", pinyinTone: "rì", meaning: "ngày, mặt trời" },
+        { hanzi: "上班", pinyinNoTone: "shangban", pinyinTone: "shàngbān", meaning: "đi làm" },
+        { hanzi: "身体", pinyinNoTone: "shenti", pinyinTone: "shēntǐ", meaning: "sức khỏe, cơ thể" },
+        { hanzi: "生病", pinyinNoTone: "shengbing", pinyinTone: "shēngbìng", meaning: "ốm, mắc bệnh" },
+        { hanzi: "生日", pinyinNoTone: "shengri", pinyinTone: "shēngrì", meaning: "sinh nhật" },
+        { hanzi: "时间", pinyinNoTone: "shijian", pinyinTone: "shíjiān", meaning: "thời gian" },
+        { hanzi: "事情", pinyinNoTone: "shiqing", pinyinTone: "shìqing", meaning: "sự việc, công việc" },
+        { hanzi: "手表", pinyinNoTone: "shoubiao", pinyinTone: "shǒubiǎo", meaning: "đồng hồ đeo tay" },
+        { hanzi: "手机", pinyinNoTone: "shouji", pinyinTone: "shǒujī", meaning: "điện thoại di động" },
+        { hanzi: "说话", pinyinNoTone: "shuohua", pinyinTone: "shuōhuà", meaning: "nói chuyện" },
+        { hanzi: "送", pinyinNoTone: "song", pinyinTone: "sòng", meaning: "tặng, tiễn" },
+        { hanzi: "所以", pinyinNoTone: "suoyi", pinyinTone: "suǒyǐ", meaning: "cho nên, vì vậy" },
+        { hanzi: "它", pinyinNoTone: "ta", pinyinTone: "tā", meaning: "nó" },
+        { hanzi: "踢足球", pinyinNoTone: "tizuqiu", pinyinTone: "tī zúqiú", meaning: "đá bóng" },
+        { hanzi: "题", pinyinNoTone: "ti", pinyinTone: "tí", meaning: "câu hỏi, đề thi" },
+        { hanzi: "跳舞", pinyinNoTone: "tiaowu", pinyinTone: "tiàowǔ", meaning: "khiêu vũ, múa" },
+        { hanzi: "外", pinyinNoTone: "wai", pinyinTone: "wài", meaning: "ngoài, bên ngoài" },
+        { hanzi: "玩", pinyinNoTone: "wan", pinyinTone: "wán", meaning: "chơi" },
+        { hanzi: "晚上", pinyinNoTone: "wangshang", pinyinTone: "wǎnshang", meaning: "buổi tối" },
+        { hanzi: "问", pinyinNoTone: "wen", pinyinTone: "wèn", meaning: "hỏi" },
+        { hanzi: "问题", pinyinNoTone: "wenti", pinyinTone: "wèntí", meaning: "câu hỏi, vấn đề" },
+        { hanzi: "西瓜", pinyinNoTone: "xigua", pinyinTone: "xīguā", meaning: "dưa hấu" },
+        { hanzi: "希望", pinyinNoTone: "xiwang", pinyinTone: "xīwàng", meaning: "hy vọng" },
+        { hanzi: "洗", pinyinNoTone: "xi", pinyinTone: "xǐ", meaning: "rửa, giặt" },
+        { hanzi: "向", pinyinNoTone: "xiang", pinyinTone: "xiàng", meaning: "hướng về, về phía" },
+        { hanzi: "小时", pinyinNoTone: "xiaoshi", pinyinTone: "xiǎoshí", meaning: "tiếng đồng hồ, giờ" },
+        { hanzi: "笑", pinyinNoTone: "xiao", pinyinTone: "xiào", meaning: "cười" },
+        { hanzi: "新", pinyinNoTone: "xin", pinyinTone: "xīn", meaning: "mới" },
+        { hanzi: "姓", pinyinNoTone: "xing", pinyinTone: "xìng", meaning: "họ" },
+        { hanzi: "休息", pinyinNoTone: "xiuxi", pinyinTone: "xiūxi", meaning: "nghỉ ngơi" },
+        { hanzi: "雪", pinyinNoTone: "xue", pinyinTone: "xuě", meaning: "tuyết" },
+        { hanzi: "颜色", pinyinNoTone: "yanse", pinyinTone: "yánsè", meaning: "màu sắc" },
+        { hanzi: "眼睛", pinyinNoTone: "yanjing", pinyinTone: "yǎnjīng", meaning: "mắt" },
+        { hanzi: "羊肉", pinyinNoTone: "yangrou", pinyinTone: "yángròu", meaning: "thịt dê" },
+        { hanzi: "药", pinyinNoTone: "yao", pinyinTone: "yào", meaning: "thuốc" },
+        { hanzi: "要", pinyinNoTone: "yao", pinyinTone: "yào", meaning: "muốn, cần" },
+        { hanzi: "也", pinyinNoTone: "ye", pinyinTone: "yě", meaning: "cũng" },
+        { hanzi: "阴", pinyinNoTone: "yin", pinyinTone: "yīn", meaning: "âm u, râm" },
+        { hanzi: "因为", pinyinNoTone: "yinwei", pinyinTone: "yīnwèi", meaning: "bởi vì" },
+        { hanzi: "游泳", pinyinNoTone: "youyong", pinyinTone: "yóuyǒng", meaning: "bơi lội" },
+        { hanzi: "右边", pinyinNoTone: "youbian", pinyinTone: "yòubian", meaning: "bên phải" },
+        { hanzi: "鱼", pinyinNoTone: "yu", pinyinTone: "yú", meaning: "cá" },
+        { hanzi: "元", pinyinNoTone: "yuan", pinyinTone: "yuán", meaning: "đồng (tệ)" },
+        { hanzi: "远", pinyinNoTone: "yuan", pinyinTone: "yuǎn", meaning: "xa" },
+        { hanzi: "运动", pinyinNoTone: "yundong", pinyinTone: "yùndòng", meaning: "vận động, thể thao" },
+        { hanzi: "再", pinyinNoTone: "zai", pinyinTone: "zài", meaning: "lại, nữa" },
+        { hanzi: "早上", pinyinNoTone: "zaoshang", pinyinTone: "zǎoshang", meaning: "buổi sáng" },
+        { hanzi: "张", pinyinNoTone: "zhang", pinyinTone: "zhāng", meaning: "tấm, trương (lượng từ)" },
+        { hanzi: "丈夫", pinyinNoTone: "zhangfu", pinyinTone: "zhàngfu", meaning: "chồng" },
+        { hanzi: "找", pinyinNoTone: "zhao", pinyinTone: "zhǎo", meaning: "tìm kiếm" },
+        { hanzi: "着", pinyinNoTone: "zhe", pinyinTone: "zhe", meaning: "đang (trợ từ tiếp diễn)" },
+        { hanzi: "真", pinyinNoTone: "zhen", pinyinTone: "zhēn", meaning: "thật, thực sự" },
+        { hanzi: "正在", pinyinNoTone: "zhengzai", pinyinTone: "zhèngzài", meaning: "đang (làm gì)" },
+        { hanzi: "知道", pinyinNoTone: "zhidao", pinyinTone: "zhīdào", meaning: "biết" },
+        { hanzi: "准备", pinyinNoTone: "zhunbei", pinyinTone: "zhǔnbèi", meaning: "chuẩn bị" },
+        { hanzi: "自行车", pinyinNoTone: "zixingche", pinyinTone: "zìxíngchē", meaning: "xe đạp" },
+        { hanzi: "走", pinyinNoTone: "zou", pinyinTone: "zǒu", meaning: "đi" },
+        { hanzi: "最", pinyinNoTone: "zui", pinyinTone: "zuì", meaning: "nhất" },
+        { hanzi: "左边", pinyinNoTone: "zuobian", pinyinTone: "zuǒbian", meaning: "bên trái" }
+    ];
+
+    let hsk2List = [];
+    let currentIndex = 0;
+    let correctCount = 0;
+
+    function shuffleArray(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function initQuiz() {
+        hsk2List = shuffleArray(originalList);
+        currentIndex = 0;
+        correctCount = 0;
+        loadCard();
+    }
+
+    function loadCard() {
+        if (currentIndex >= hsk2List.length) {
+            alert("🎉 Chúc mừng bạn đã hoàn thành xuất sắc tất cả 153 từ vựng vòng này! Chương trình sẽ xáo trộn lại từ đầu để bạn luyện tập tiếp.");
+            initQuiz();
+            return;
+        }
+        const currentWord = hsk2List[currentIndex];
+        document.getElementById('hanziCard').innerText = currentWord.hanzi;
+        document.getElementById('pinyinInput').value = '';
+        document.getElementById('resultMsg').innerText = '';
+        document.getElementById('aiResultMsg').innerText = '';
+        updateStats();
+    }
+
+    function updateStats() {
+        document.getElementById('stats').innerText = `Đã học ${currentIndex + 1}/${hsk2List.length} · Đúng ${correctCount}`;
+    }
+
+    function checkAnswer() {
+        const userVal = document.getElementById('pinyinInput').value.trim().toLowerCase();
+        const currentWord = hsk2List[currentIndex];
+        const msg = document.getElementById('resultMsg');
+
+        if (userVal === currentWord.pinyinNoTone) {
+            msg.style.color = "green";
+            msg.innerText = `Chính xác! (${currentWord.pinyinTone}) - Nghĩa: ${currentWord.meaning}`;
+            correctCount++;
+            updateStats();
+        } else {
+            msg.style.color = "red";
+            msg.innerText = "Chưa đúng, hãy thử lại!";
+        }
+    }
+
+    function skipAndShowAnswer() {
+        const currentWord = hsk2List[currentIndex];
+        const msg = document.getElementById('resultMsg');
+        msg.style.color = "#8b4513";
+        msg.innerHTML = `Đáp án: <span style="color: #b22222; font-size: 18px;">[${currentWord.pinyinTone}]</span> - Nghĩa: ${currentWord.meaning}`;
+    }
+
+    function nextCard() {
+        currentIndex++;
+        loadCard();
+    }
+
+    function checkSentenceWithAI() {
+        const apiKey = document.getElementById('apiKeyInput').value.trim();
+        const sentence = document.getElementById('userSentence').value.trim();
+        const currentWord = hsk2List[currentIndex];
+        const aiMsg = document.getElementById('aiResultMsg');
+
+        if (!apiKey) {
+            alert("Vui lòng nhập Gemini API Key!");
+            return;
+        }
+        if (!sentence) {
+            alert("Vui lòng viết câu của bạn!");
+            return;
+        }
+
+        aiMsg.style.color = "#333";
+        aiMsg.innerText = "AI đang phân tích câu của bạn...";
+
+        fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: `Hãy sửa câu tiếng Trung sau đây giúp tôi: "${sentence}". Từ vựng trọng tâm là "${currentWord.hanzi}". Hãy nhận xét ngữ pháp, sửa lỗi nếu có và dịch sang tiếng Việt bằng văn phong ngắn gọn.` }]
+                }]
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const reply = data.candidates[0].content.parts[0].text;
+            aiMsg.style.color = "green";
+            aiMsg.innerText = reply;
+        })
+        .catch(error => {
+            aiMsg.style.color = "red";
+            aiMsg.innerText = "Lỗi kết nối AI, vui lòng kiểm tra lại API key.";
+        });
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
