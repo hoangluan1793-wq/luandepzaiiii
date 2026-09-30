@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luyện chữ Hán HSK1 & HSK2 - Trắc nghiệm Logic</title>
+    <title>Luyện chữ Hán HSK1 & HSK2 - Trắc nghiệm Logic & Điều hướng</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -133,6 +133,12 @@
             color: #fca5a5 !important;
         }
 
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         button {
             padding: 12px 20px;
             border: none;
@@ -154,13 +160,22 @@
             margin-top: 5px;
         }
         .btn-skip:hover { background-color: #4c4643; }
+        
+        .btn-prev {
+            background-color: #3b3b3b;
+            color: #fff;
+            flex: 1;
+        }
+        .btn-prev:hover:not(:disabled) { background-color: #4b4b4b; }
+        .btn-prev:disabled { opacity: 0.5; cursor: not-allowed; }
+
         .btn-next {
             background-color: #2ea043;
             color: #fff;
-            width: 100%;
-            margin-top: 10px;
+            flex: 2;
         }
         .btn-next:hover { background-color: #2c974b; }
+
         .ai-section h3 {
             margin-top: 0;
             font-size: 16px;
@@ -225,7 +240,12 @@
         </div>
 
         <button class="btn-skip" onclick="skipAndShowAnswer()">Bỏ qua / Xem đáp án & Phân tích chi tiết</button>
-        <button class="btn-next" onclick="nextCard()">Chuyển từ tiếp theo ➔</button>
+        
+        <div class="nav-buttons">
+            <button class="btn-prev" id="prevBtn" onclick="prevCard()" disabled>⬅️ Câu trước</button>
+            <button class="btn-next" onclick="nextCard()">Câu tiếp theo ➔</button>
+        </div>
+
         <div class="result-message" id="resultMsg" style="display: none;"></div>
     </div>
 
@@ -599,6 +619,9 @@
             return;
         }
 
+        // Cập nhật trạng thái nút Quay lại (Câu trước)
+        document.getElementById('prevBtn').disabled = (currentIndex === 0);
+
         const currentWord = currentList[currentIndex];
         document.getElementById('hanziCard').innerText = currentWord.hanzi;
         document.getElementById('pinyinInput').value = '';
@@ -620,18 +643,15 @@
         const quizContainer = document.getElementById('quizContainer');
         quizContainer.innerHTML = '';
 
-        // TÍNH LOGIC MỚI: Lọc các từ sai có cùng số lượng chữ Hán với từ đúng
         const correctLength = correctWord.hanzi.length;
         let sameLengthOptions = currentData.filter(item => item.hanzi !== correctWord.hanzi && item.hanzi.length === correctLength);
 
-        // Nếu số lượng từ cùng chiều dài không đủ 3 từ, lấy bù bằng tất cả các từ còn lại
         if (sameLengthOptions.length < 3) {
             let fallbackOptions = currentData.filter(item => item.hanzi !== correctWord.hanzi);
             sameLengthOptions = [...sameLengthOptions, ...fallbackOptions];
         }
 
         let wrongOptions = shuffleArray(sameLengthOptions).slice(0, 3);
-
         let options = [...wrongOptions, correctWord];
         options = shuffleArray(options);
 
@@ -689,7 +709,7 @@
         if (userVal === currentWord.pinyinNoTone) {
             msg.style.color = "#4ec9b0";
             msg.innerHTML = `✅ <b>Chính xác!</b><br>` +
-                            `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${correctWord.pinyinTone}]</span><br>` +
+                            `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${currentWord.pinyinTone}]</span><br>` +
                             `• Nghĩa tiếng Việt: <b>${currentWord.meaning}</b><br>` +
                             `• <i>Phân tích & Mẹo nhớ chi tiết:</i><br>${currentWord.detail}`;
             correctCount++;
@@ -706,8 +726,8 @@
         msg.style.display = 'block';
         msg.style.color = "#dcdcaa";
         msg.innerHTML = `💡 <b>Đáp án & Phân tích chi tiết:</b><br>` +
-                        `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${correctWord.pinyinTone}]</span><br>` +
-                        `• Nghĩa tiếng Việt: <b>${correctWord.meaning}</b><br>` +
+                        `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${currentWord.pinyinTone}]</span><br>` +
+                        `• Nghĩa tiếng Việt: <b>${currentWord.meaning}</b><br>` +
                         `• <i>Phân tích & Mẹo nhớ chi tiết:</i><br>${currentWord.detail}`;
 
         const mode = document.getElementById('modeSelect').value;
@@ -720,6 +740,13 @@
                     btn.classList.add('correct');
                 }
             }
+        }
+    }
+
+    function prevCard() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            loadCard();
         }
     }
 
