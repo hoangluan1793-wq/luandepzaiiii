@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luyện chữ Hán HSK1 & HSK2 - Trắc nghiệm & Gõ Pinyin</title>
+    <title>Luyện chữ Hán HSK1 & HSK2 - Trắc nghiệm Logic</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -81,7 +81,6 @@
             justify-content: center;
         }
         
-        /* Giao diện cho chế độ gõ Pinyin */
         .input-group {
             display: flex;
             gap: 10px;
@@ -101,7 +100,6 @@
             outline: none;
         }
 
-        /* Giao diện cho chế độ trắc nghiệm A-B-C-D */
         .quiz-options {
             display: flex;
             flex-direction: column;
@@ -197,7 +195,6 @@
         <div class="stats" id="stats">Đã học 1/150 · Đúng 0</div>
     </div>
 
-    <!-- Thanh cấu hình chọn cấp độ & chế độ học -->
     <div class="settings-bar">
         <div>
             <label for="levelSelect">📚 Cấp độ:</label>
@@ -215,16 +212,11 @@
         </div>
     </div>
 
-    <!-- Thẻ học chữ Hán -->
     <div class="card-box">
         <div class="hanzi-display" id="hanziCard">字</div>
 
-        <!-- Khung chứa cho chế độ Trắc nghiệm A-B-C-D -->
-        <div id="quizContainer" class="quiz-options">
-            <!-- Các nút A, B, C, D sẽ được tạo tự động bằng JavaScript -->
-        </div>
+        <div id="quizContainer" class="quiz-options"></div>
 
-        <!-- Khung chứa cho chế độ Gõ Pinyin -->
         <div id="inputContainer" style="display: none;">
             <div class="input-group">
                 <input type="text" id="pinyinInput" placeholder="Gõ pinyin (không dấu), ấn Enter..." onkeypress="handleKeyPress(event)">
@@ -237,7 +229,6 @@
         <div class="result-message" id="resultMsg" style="display: none;"></div>
     </div>
 
-    <!-- Phần đặt câu với AI -->
     <div class="ai-section">
         <h3>Đặt câu với từ này</h3>
         <p>Thử viết một câu tiếng Trung dùng từ vừa học, rồi nhờ AI kiểm tra giúp bạn.</p>
@@ -253,311 +244,310 @@
 </div>
 
 <script>
-    // Dữ liệu HSK1 & HSK2 chuẩn
     const hsk1Data = [
-        { hanzi: "爱", pinyinNoTone: "ai", pinyinTone: "ài", meaning: "yêu, thích", detail: "• Cấu tạo: Bộ mịch 💥 + bộ tâm 心.<br>• Mẹo nhớ: Yêu thương bằng cả trái tim (心)." },
-        { hanzi: "八", pinyinNoTone: "ba", pinyinTone: "bā", meaning: "số 8", detail: "• Cấu tạo: Tượng hình hai nét phẩy ngửa ra hai bên." },
+        { hanzi: "爱", pinyinNoTone: "ai", pinyinTone: "ài", meaning: "yêu, thích", detail: "• Cấu tạo: Bộ mịch + bộ tâm 心.<br>• Mẹo nhớ: Yêu thương bằng cả trái tim (心)." },
+        { hanzi: "八", pinyinNoTone: "ba", pinyinTone: "bā", meaning: "số 8", detail: "• Cấu tạo: Tượng hình hai nét phẩy ngửa." },
         { hanzi: "爸爸", pinyinNoTone: "baba", pinyinTone: "bàba", meaning: "bố, ba", detail: "• Cấu tạo: Bộ phụ 父 (người cha)." },
         { hanzi: "杯子", pinyinNoTone: "beizi", pinyinTone: "bēizi", meaning: "cái cốc, cái ly", detail: "• Cấu tạo: 木 (gỗ làm cốc) + 子." },
         { hanzi: "北京", pinyinNoTone: "beijing", pinyinTone: "Běijīng", meaning: "Bắc Kinh", detail: "• Cấu tạo: 北 (phương Bắc) + 京 (kinh thành)." },
-        { hanzi: "本", pinyinNoTone: "ben", pinyinTone: "běn", meaning: "cuốn, quyển", detail: "• Cấu tạo: Bộ mộc 木 có vạch ngang chỉ gốc cây làm ra sách." },
+        { hanzi: "本", pinyinNoTone: "ben", pinyinTone: "běn", meaning: "cuốn, quyển", detail: "• Cấu tạo: Bộ mộc 木 có vạch ngang gốc cây." },
         { hanzi: "不客气", pinyinNoTone: "bukeqi", pinyinTone: "bú kèqi", meaning: "không có gì, đừng khách khí", detail: "• Cấu tạo: 不 (không) + 客 (khách) + 气 (khí)." },
         { hanzi: "不", pinyinNoTone: "bu", pinyinTone: "bù", meaning: "không", detail: "• Cấu tạo: Bộ bất 不 chỉ sự phủ định." },
-        { hanzi: "菜", pinyinNoTone: "cai", pinyinTone: "cài", meaning: "rau, món ăn", detail: "• Cấu tạo: Bộ thảo 艹 (cây cỏ) bên trên." },
+        { hanzi: "菜", pinyinNoTone: "cai", pinyinTone: "cài", meaning: "rau, món ăn", detail: "• Cấu tạo: Bộ thảo 艹 (cây cỏ)." },
         { hanzi: "茶", pinyinNoTone: "cha", pinyinTone: "chá", meaning: "trà", detail: "• Cấu tạo: Bộ thảo 艹 (lá trà)." },
-        { hanzi: "吃", pinyinNoTone: "chi", pinyinTone: "chī", meaning: "ăn", detail: "• Cấu tạo: Bộ khẩu 口 (dùng miệng để ăn)." },
+        { hanzi: "吃", pinyinNoTone: "chi", pinyinTone: "chī", meaning: "ăn", detail: "• Cấu tạo: Bộ khẩu 口 (miệng ăn)." },
         { hanzi: "出租车", pinyinNoTone: "chuzuche", pinyinTone: "chūzūchē", meaning: "xe taxi", detail: "• Cấu tạo: 出 (ra) + 租 (thuê) + 车 (xe)." },
-        { hanzi: "打电话", pinyinNoTone: "dadianhua", pinyinTone: "dǎ diànhuà", meaning: "gọi điện thoại", detail: "• Cấu tạo: 打 (tay 扌) + 电 (điện) + 话 (lời nói 讠)." },
-        { hanzi: "大", pinyinNoTone: "da", pinyinTone: "dà", meaning: "to, lớn", detail: "• Cấu tạo: Tượng hình người dang rộng tay chân." },
-        { hanzi: "的", pinyinNoTone: "de", pinyinTone: "de", meaning: "của (trợ từ sở hữu)", detail: "• Cấu tạo: 白 (trắng) + 勺 (muỗng)." },
+        { hanzi: "打电话", pinyinNoTone: "dadianhua", pinyinTone: "dǎ diànhuà", meaning: "gọi điện thoại", detail: "• Cấu tạo: 打 (tay) + 电 (điện) + 话 (lời nói)." },
+        { hanzi: "大", pinyinNoTone: "da", pinyinTone: "dà", meaning: "to, lớn", detail: "• Cấu tạo: Tượng hình người dang rộng." },
+        { hanzi: "的", pinyinNoTone: "de", pinyinTone: "de", meaning: "của (trợ từ sở hữu)", detail: "• Cấu tạo: 白 + 勺." },
         { hanzi: "点", pinyinNoTone: "dian", pinyinTone: "diǎn", meaning: "giờ, chút ít", detail: "• Cấu tạo: Phía dưới có bộ hỏa 💥 (bốn chấm)." },
-        { hanzi: "电脑", pinyinNoTone: "diannao", pinyinTone: "diànnǎo", meaning: "máy tính", detail: "• Cấu tạo: 电 (điện) + 脑 (bộ não 月)." },
+        { hanzi: "电脑", pinyinNoTone: "diannao", pinyinTone: "diànnǎo", meaning: "máy tính", detail: "• Cấu tạo: 电 (điện) + 脑 (não 月)." },
         { hanzi: "电视", pinyinNoTone: "dianshi", pinyinTone: "diànshì", meaning: "tivi", detail: "• Cấu tạo: 电 (điện) + 视 (nhìn 见)." },
         { hanzi: "电影", pinyinNoTone: "dianying", pinyinTone: "diànyǐng", meaning: "phim ảnh", detail: "• Cấu tạo: 电 (điện) + 影 (bóng hình)." },
-        { hanzi: "东西", pinyinNoTone: "dongxi", pinyinTone: "dōngxi", meaning: "đồ vật", detail: "• Cấu tạo: 东 (phía đông) + 西 (phía tây)." },
+        { hanzi: "东西", pinyinNoTone: "dongxi", pinyinTone: "dōngxi", meaning: "đồ vật", detail: "• Cấu tạo: 东 (đông) + 西 (tây)." },
         { hanzi: "都", pinyinNoTone: "dou", pinyinTone: "dōu", meaning: "đều", detail: "• Cấu tạo: Phía phải có bộ ấp 阝." },
-        { hanzi: "读", pinyinNoTone: "du", pinyinTone: "dú", meaning: "đọc", detail: "• Cấu tạo: Bộ ngôn 讠 (dùng lời nói để đọc sách)." },
-        { hanzi: "对不起", pinyinNoTone: "duibuqi", pinyinTone: "duìbuqǐ", meaning: "xin lỗi", detail: "• Cấu tạo: 对 + 不 + 起 (đứng lên)." },
-        { hanzi: "多", pinyinNoTone: "duo", pinyinTone: "duō", meaning: "nhiều", detail: "• Cấu tạo: Hai chữ 夕 (buổi tối) xếp chồng lên nhau." },
+        { hanzi: "读", pinyinNoTone: "du", pinyinTone: "dú", meaning: "đọc", detail: "• Cấu tạo: Bộ ngôn 讠 (đọc sách)." },
+        { hanzi: "对不起", pinyinNoTone: "duibuqi", pinyinTone: "duìbuqǐ", meaning: "xin lỗi", detail: "• Cấu tạo: 对 + 不 + 起." },
+        { hanzi: "多", pinyinNoTone: "duo", pinyinTone: "duō", meaning: "nhiều", detail: "• Cấu tạo: Hai chữ 夕 xếp chồng." },
         { hanzi: "多少", pinyinNoTone: "duoshao", pinyinTone: "duōshao", meaning: "bao nhiêu", detail: "• Cấu tạo: 多 (nhiều) + 少 (ít)." },
-        { hanzi: "儿子", pinyinNoTone: "erzi", pinyinTone: "érzi", meaning: "con trai", detail: "• Cấu tạo: 儿 (con) + 子 (tử)." },
+        { hanzi: "儿子", pinyinNoTone: "erzi", pinyinTone: "érzi", meaning: "con trai", detail: "• Cấu tạo: 儿 + 子." },
         { hanzi: "二", pinyinNoTone: "er", pinyinTone: "èr", meaning: "số 2", detail: "• Cấu tạo: Hai nét ngang." },
         { hanzi: "饭店", pinyinNoTone: "fandian", pinyinTone: "fàndiàn", meaning: "nhà hàng, khách sạn", detail: "• Cấu tạo: 饭 (thực 饣) + 店 (quán 广)." },
         { hanzi: "飞机", pinyinNoTone: "feiji", pinyinTone: "fēijī", meaning: "máy bay", detail: "• Cấu tạo: 飞 (bay) + 机 (máy 木)." },
-        { hanzi: "分钟", pinyinNoTone: "fenzhong", pinyinTone: "fēnzhōng", meaning: "phút", detail: "• Cấu tạo: 分 (chia) + 钟 (chuông kim 钅)." },
+        { hanzi: "分钟", pinyinNoTone: "fenzhong", pinyinTone: "fēnzhōng", meaning: "phút", detail: "• Cấu tạo: 分 (chia) + 钟 (kim 钅)." },
         { hanzi: "高兴", pinyinNoTone: "gaoxing", pinyinTone: "gāoxìng", meaning: "vui vẻ", detail: "• Cấu tạo: 高 (cao) + 兴 (hứng khởi)." },
         { hanzi: "个", pinyinNoTone: "ge", pinyinTone: "gè", meaning: "cái, con (lượng từ)", detail: "• Cấu tạo: 人 (người) + nét đứng." },
-        { hanzi: "工作", pinyinNoTone: "gongzuo", pinyinTone: "gōngzuò", meaning: "công việc, làm việc", detail: "• Cấu tạo: 工 (thợ) + 作 (nhân 亻)." },
-        { hanzi: "狗", pinyinNoTone: "gou", pinyinTone: "gǒu", meaning: "con chó", detail: "• Cấu tạo: Bộ khuyển 犭 (chó/động vật)." },
+        { hanzi: "工作", pinyinNoTone: "gongzuo", pinyinTone: "gōngzuò", meaning: "công việc, làm việc", detail: "• Cấu tạo: 工 (thợ) + 作." },
+        { hanzi: "狗", pinyinNoTone: "gou", pinyinTone: "gǒu", meaning: "con chó", detail: "• Cấu tạo: Bộ khuyển 犭." },
         { hanzi: "汉语", pinyinNoTone: "hanyu", pinyinTone: "hànyǔ", meaning: "tiếng Hán", detail: "• Cấu tạo: 汉 (sông 氵) + 语 (ngôn 讠)." },
-        { hanzi: "好", pinyinNoTone: "hao", pinyinTone: "hǎo", meaning: "tốt, hay", detail: "• Cấu tạo: 女 (phụ nữ) + 子 (con cái). Mẹ con bên nhau là điều tốt." },
-        { hanzi: "喝", pinyinNoTone: "he", pinyinTone: "hē", meaning: "uống", detail: "• Cấu tạo: Bộ khẩu 口 (miệng uống nước)." },
-        { hanzi: "和", pinyinNoTone: "he", pinyinTone: "hé", meaning: "và, với", detail: "• Cấu tạo: 禾 (lúa) + 口 (miệng hòa thuận)." },
-        { hanzi: "很", pinyinNoTone: "hen", pinyinTone: "hěn", meaning: "rất", detail: "• Cấu tạo: Bộ xích 彳 kết hợp chữ cấn." },
+        { hanzi: "好", pinyinNoTone: "hao", pinyinTone: "hǎo", meaning: "tốt, hay", detail: "• Cấu tạo: 女 + 子." },
+        { hanzi: "喝", pinyinNoTone: "he", pinyinTone: "hē", meaning: "uống", detail: "• Cấu tạo: Bộ khẩu 口 (uống nước)." },
+        { hanzi: "和", pinyinNoTone: "he", pinyinTone: "hé", meaning: "và, với", detail: "• Cấu tạo: 禾 (lúa) + 口." },
+        { hanzi: "很", pinyinNoTone: "hen", pinyinTone: "hěn", meaning: "rất", detail: "• Cấu tạo: Bộ xích 彳." },
         { hanzi: "后面", pinyinNoTone: "houmian", pinyinTone: "hòumiàn", meaning: "phía sau", detail: "• Cấu tạo: 后 (sau) + 面 (mặt)." },
-        { hanzi: "回", pinyinNoTone: "hui", pinyinTone: "huí", meaning: "trở về", detail: "• Cấu tạo: Tượng hình vòng xoáy quay về trung tâm." },
-        { hanzi: "会", pinyinNoTone: "hui", pinyinTone: "huì", meaning: "biết, sẽ", detail: "• Cấu tạo: 人 (người) hội tụ năng lực." },
-        { hanzi: "几", pinyinNoTone: "ji", pinyinTone: "jǐ", meaning: "mấy, bao nhiêu", detail: "• Cấu tạo: Tượng hình cái ghế/con số nhỏ." },
-        { hanzi: "家", pinyinNoTone: "jia", pinyinTone: "jiā", meaning: "nhà, gia đình", detail: "• Cấu tạo: 宀 (mái nhà) bên trong nuôi heo 豕." },
-        { hanzi: "叫", pinyinNoTone: "jiao", pinyinTone: "jiào", meaning: "tên là, gọi", detail: "• Cấu tạo: 口 (miệng cất tiếng gọi)." },
-        { hanzi: "今天", pinyinNoTone: "jintian", pinyinTone: "jīntiān", meaning: "hôm nay", detail: "• Cấu tạo: 今 (hiện tại) + 天 (ngày)." },
-        { hanzi: "九", pinyinNoTone: "jiu", pinyinTone: "jiǔ", meaning: "số 9", detail: "• Cấu tạo: Số chín trong chữ Hán." },
-        { hanzi: "开", pinyinNoTone: "kai", pinyinTone: "kāi", meaning: "mở, lái (xe)", detail: "• Cấu tạo: Mở cánh cửa môn 门." },
-        { hanzi: "看", pinyinNoTone: "kan", pinyinTone: "kàn", meaning: "nhìn, xem", detail: "• Cấu tạo: 手 (bàn tay) che trên 目 (mắt) để nhìn xa." },
-        { hanzi: "看见", pinyinNoTone: "kanjian", pinyinTone: "kànjiàn", meaning: "nhìn thấy", detail: "• Cấu tạo: 看 (xem) + 见 (thấy)." },
-        { hanzi: "块", pinyinNoTone: "kuai", pinyinTone: "kuài", meaning: "đồng (tiền), miếng", detail: "• Cấu tạo: Bộ thổ 土 (cục đất/tiền)." },
-        { hanzi: "来", pinyinNoTone: "lai", pinyinTone: "lái", meaning: "đến, tới", detail: "• Cấu tạo: Tượng hình cây lúa mì từ xa tới." },
-        { hanzi: "老师", pinyinNoTone: "laoshi", pinyinTone: "lǎoshī", meaning: "thầy cô giáo", detail: "• Cấu tạo: 老 (già/kính trọng) + 师 (thầy)." },
-        { hanzi: "了", pinyinNoTone: "le", pinyinTone: "le", meaning: "rồi (trợ từ)", detail: "• Cấu tạo: Trợ từ hoàn thành hành động." },
-        { hanzi: "冷", pinyinNoTone: "leng", pinyinTone: "lěng", meaning: "lạnh", detail: "• Cấu tạo: Bộ băng 冫 (nước đá lạnh giá)." },
-        { hanzi: "里", pinyinNoTone: "li", pinyinTone: "lǐ", meaning: "bên trong", detail: "• Cấu tạo: 田 (ruộng) + 土 (đất)." },
-        { hanzi: "六", pinyinNoTone: "liu", pinyinTone: "liù", meaning: "số 6", detail: "• Cấu tạo: Số sáu trong chữ Hán." },
-        { hanzi: "妈妈", pinyinNoTone: "mama", pinyinTone: "māma", meaning: "mẹ", detail: "• Cấu tạo: 女 (người phụ nữ) + 马 (chữ mã mượn âm)." },
-        { hanzi: "吗", pinyinNoTone: "ma", pinyinTone: "ma", meaning: "không? (trợ từ nghi vấn)", detail: "• Cấu tạo: 口 (miệng hỏi) + 马." },
-        { hanzi: "买", pinyinNoTone: "mai", pinyinTone: "mǎi", meaning: "mua", detail: "• Cấu tạo: Thu mua đồ đạc về." },
-        { hanzi: "猫", pinyinNoTone: "mao", pinyinTone: "māo", meaning: "con mèo", detail: "• Cấu tạo: 犭 (bộ động vật/chó mèo) + 苗." },
-        { hanzi: "没关系", pinyinNoTone: "meiguanxi", pinyinTone: "méi guānxi", meaning: "không sao, không có gì", detail: "• Cấu tạo: 没 (không) + 关 (quan) + 系 (hệ)." },
-        { hanzi: "没有", pinyinNoTone: "meiyou", pinyinTone: "méiyǒu", meaning: "không có", detail: "• Cấu tạo: 没 (chưa/không) + 有 (có)." },
-        { hanzi: "米饭", pinyinNoTone: "mifan", pinyinTone: "mǐfàn", meaning: "cơm", detail: "• Cấu tạo: 米 (gạo) + 饭 (thức ăn 饣)." },
-        { hanzi: "明天", pinyinNoTone: "mingtian", pinyinTone: "míngtiān", meaning: "ngày mai", detail: "• Cấu tạo: 明 (nhật 日 + nguyệt 月) + 天." },
-        { hanzi: "名字", pinyinNoTone: "mingzi", pinyinTone: "míngzi", meaning: "tên", detail: "• Cấu tạo: 名 (miệng gọi 口) + 子." },
-        { hanzi: "哪", pinyinNoTone: "na", pinyinTone: "nǎ", meaning: "nào, đâu", detail: "• Cấu tạo: 口 (miệng hỏi) + 那." },
-        { hanzi: "那", pinyinNoTone: "na", pinyinTone: "nà", meaning: "kia, đó", detail: "• Cấu tạo: Bộ ấp 阝 bên phải." },
-        { hanzi: "呢", pinyinNoTone: "ne", pinyinTone: "ne", meaning: "nhỉ (trợ từ)", detail: "• Cấu tạo: 口 (miệng) dùng hỏi vặn." },
-        { hanzi: "能", pinyinNoTone: "neng", pinyinTone: "néng", meaning: "có thể", detail: "• Cấu tạo: Biểu thị năng lực." },
-        { hanzi: "你", pinyinNoTone: "ni", pinyinTone: "nǐ", meaning: "bạn", detail: "• Cấu tạo: 亻 (người) + 尔." },
-        { hanzi: "年", pinyinNoTone: "nian", pinyinTone: "nián", meaning: "năm", detail: "• Cấu tạo: Chu kỳ mùa màng 1 năm." },
-        { hanzi: "女儿", pinyinNoTone: "nuer", pinyinTone: "nǚ'ér", meaning: "con gái", detail: "• Cấu tạo: 女 (nữ) + 儿 (con)." },
-        { hanzi: "朋友", pinyinNoTone: "pengyou", pinyinTone: "péngyou", meaning: "bạn bè", detail: "• Cấu tạo: 朋 (hai mặt trăng 月 kề bên) + 友 (bằng hữu)." },
-        { hanzi: "漂亮", pinyinNoTone: "piaoliang", pinyinTone: "piàoliang", meaning: "đẹp", detail: "• Cấu tạo: 漂 (nước 氵 trong) + 亮 (sáng)." },
-        { hanzi: "苹果", pinyinNoTone: "pingguo", pinyinTone: "píngguǒ", meaning: "quả táo", detail: "• Cấu tạo: 苹 (thảo 艹) + 果 (quả cây 木)." },
-        { hanzi: "七", pinyinNoTone: "qi", pinyinTone: "qī", meaning: "số 7", detail: "• Cấu tạo: Số bảy trong chữ Hán." },
-        { hanzi: "钱", pinyinNoTone: "qian", pinyinTone: "qián", meaning: "tiền", detail: "• Cấu tạo: Bộ kim 钅 (kim loại/tiền bạc)." },
-        { hanzi: "前面", pinyinNoTone: "qianmian", pinyinTone: "qiánmiàn", meaning: "phía trước", detail: "• Cấu tạo: 前 (trước) + 面 (mặt)." },
-        { hanzi: "请", pinyinNoTone: "qing", pinyinTone: "qǐng", meaning: "mời, xin vui lòng", detail: "• Cấu tạo: Bộ ngôn 讠 (dùng lời nói lịch sự mời)." },
-        { hanzi: "去", pinyinNoTone: "qu", pinyinTone: "qù", meaning: "đi", detail: "• Cấu tạo: Đi rời khỏi vị trí." },
-        { hanzi: "热", pinyinNoTone: "re", pinyinTone: "rè", meaning: "nóng", detail: "• Cấu tạo: Phía dưới có bộ hỏa 💥 bốn chấm." },
-        { hanzi: "人", pinyinNoTone: "ren", pinyinTone: "rén", meaning: "người", detail: "• Cấu tạo: Tượng hình hai chân con người bước đi." },
-        { hanzi: "认识", pinyinNoTone: "renshi", pinyinTone: "rènshi", meaning: "quen biết", detail: "• Cấu tạo: 认 (ngôn 讠) + 识 (ngôn 讠)." },
+        { hanzi: "回", pinyinNoTone: "hui", pinyinTone: "huí", meaning: "trở về", detail: "• Cấu tạo: Vòng xoáy quay về." },
+        { hanzi: "会", pinyinNoTone: "hui", pinyinTone: "huì", meaning: "biết, sẽ", detail: "• Cấu tạo: 人 (người) hội tụ." },
+        { hanzi: "几", pinyinNoTone: "ji", pinyinTone: "jǐ", meaning: "mấy, bao nhiêu", detail: "• Cấu tạo: Số lượng nhỏ." },
+        { hanzi: "家", pinyinNoTone: "jia", pinyinTone: "jiā", meaning: "nhà, gia đình", detail: "• Cấu tạo: 宀 (mái nhà) + 豕." },
+        { hanzi: "叫", pinyinNoTone: "jiao", pinyinTone: "jiào", meaning: "tên là, gọi", detail: "• Cấu tạo: 口 (miệng gọi)." },
+        { hanzi: "今天", pinyinNoTone: "jintian", pinyinTone: "jīntiān", meaning: "hôm nay", detail: "• Cấu tạo: 今 + 天." },
+        { hanzi: "九", pinyinNoTone: "jiu", pinyinTone: "jiǔ", meaning: "số 9", detail: "• Cấu tạo: Số chín." },
+        { hanzi: "开", pinyinNoTone: "kai", pinyinTone: "kāi", meaning: "mở, lái (xe)", detail: "• Cấu tạo: Mở cửa 门." },
+        { hanzi: "看", pinyinNoTone: "kan", pinyinTone: "kàn", meaning: "nhìn, xem", detail: "• Cấu tạo: Tay che trên 目 (mắt)." },
+        { hanzi: "看见", pinyinNoTone: "kanjian", pinyinTone: "kànjiàn", meaning: "nhìn thấy", detail: "• Cấu tạo: 看 + 见." },
+        { hanzi: "块", pinyinNoTone: "kuai", pinyinTone: "kuài", meaning: "đồng (tiền), miếng", detail: "• Cấu tạo: Bộ thổ 土." },
+        { hanzi: "来", pinyinNoTone: "lai", pinyinTone: "lái", meaning: "đến, tới", detail: "• Cấu tạo: Cây lúa mì từ xa tới." },
+        { hanzi: "老师", pinyinNoTone: "laoshi", pinyinTone: "lǎoshī", meaning: "thầy cô giáo", detail: "• Cấu tạo: 老 (già) + 师." },
+        { hanzi: "了", pinyinNoTone: "le", pinyinTone: "le", meaning: "rồi (trợ từ)", detail: "• Cấu tạo: Trợ từ hoàn thành." },
+        { hanzi: "冷", pinyinNoTone: "leng", pinyinTone: "lěng", meaning: "lạnh", detail: "• Cấu tạo: Bộ băng 冫." },
+        { hanzi: "里", pinyinNoTone: "li", pinyinTone: "lǐ", meaning: "bên trong", detail: "• Cấu tạo: 田 (ruộng) + 土." },
+        { hanzi: "六", pinyinNoTone: "liu", pinyinTone: "liù", meaning: "số 6", detail: "• Cấu tạo: Số sáu." },
+        { hanzi: "妈妈", pinyinNoTone: "mama", pinyinTone: "māma", meaning: "mẹ", detail: "• Cấu tạo: 女 + 马." },
+        { hanzi: "吗", pinyinNoTone: "ma", pinyinTone: "ma", meaning: "không? (trợ từ)", detail: "• Cấu tạo: 口 + 马." },
+        { hanzi: "买", pinyinNoTone: "mai", pinyinTone: "mǎi", meaning: "mua", detail: "• Cấu tạo: Thu mua đồ." },
+        { hanzi: "猫", pinyinNoTone: "mao", pinyinTone: "māo", meaning: "con mèo", detail: "• Cấu tạo: 犭 + 苗." },
+        { hanzi: "没关系", pinyinNoTone: "meiguanxi", pinyinTone: "méi guānxi", meaning: "không sao", detail: "• Cấu tạo: 没 + 关 + 系." },
+        { hanzi: "没有", pinyinNoTone: "meiyou", pinyinTone: "méiyǒu", meaning: "không có", detail: "• Cấu tạo: 没 + 有." },
+        { hanzi: "米饭", pinyinNoTone: "mifan", pinyinTone: "mǐfàn", meaning: "cơm", detail: "• Cấu tạo: 米 (gạo) + 饭." },
+        { hanzi: "明天", pinyinNoTone: "mingtian", pinyinTone: "míngtiān", meaning: "ngày mai", detail: "• Cấu tạo: 日 + 月 + 天." },
+        { hanzi: "名字", pinyinNoTone: "mingzi", pinyinTone: "míngzi", meaning: "tên", detail: "• Cấu tạo: 名 + 子." },
+        { hanzi: "哪", pinyinNoTone: "na", pinyinTone: "nǎ", meaning: "nào, đâu", detail: "• Cấu tạo: 口 + 那." },
+        { hanzi: "那", pinyinNoTone: "na", pinyinTone: "nà", meaning: "kia, đó", detail: "• Cấu tạo: Vùng đất phía xa." },
+        { hanzi: "呢", pinyinNoTone: "ne", pinyinTone: "ne", meaning: "nhỉ (trợ từ)", detail: "• Cấu tạo: Trợ từ cuối câu." },
+        { hanzi: "能", pinyinNoTone: "neng", pinyinTone: "néng", meaning: "có thể", detail: "• Cấu tạo: Năng lực." },
+        { hanzi: "你", pinyinNoTone: "ni", pinyinTone: "nǐ", meaning: "bạn", detail: "• Cấu tạo: 亻 + 尔." },
+        { hanzi: "年", pinyinNoTone: "nian", pinyinTone: "nián", meaning: "năm", detail: "• Cấu tạo: Chu kỳ mùa màng." },
+        { hanzi: "女儿", pinyinNoTone: "nuer", pinyinTone: "nǚ'ér", meaning: "con gái", detail: "• Cấu tạo: 女 + 儿." },
+        { hanzi: "朋友", pinyinNoTone: "pengyou", pinyinTone: "péngyou", meaning: "bạn bè", detail: "• Cấu tạo: 朋 + 友." },
+        { hanzi: "漂亮", pinyinNoTone: "piaoliang", pinyinTone: "piàoliang", meaning: "đẹp", detail: "• Cấu tạo: 漂 + 亮." },
+        { hanzi: "苹果", pinyinNoTone: "pingguo", pinyinTone: "píngguǒ", meaning: "quả táo", detail: "• Cấu tạo: 苹 + 果." },
+        { hanzi: "七", pinyinNoTone: "qi", pinyinTone: "qī", meaning: "số 7", detail: "• Cấu tạo: Số bảy." },
+        { hanzi: "钱", pinyinNoTone: "qian", pinyinTone: "qián", meaning: "tiền", detail: "• Cấu tạo: Bộ kim 钅." },
+        { hanzi: "前面", pinyinNoTone: "qianmian", pinyinTone: "qiánmiàn", meaning: "phía trước", detail: "• Cấu tạo: 前 + 面." },
+        { hanzi: "请", pinyinNoTone: "qing", pinyinTone: "qǐng", meaning: "mời", detail: "• Cấu tạo: Bộ ngôn 讠." },
+        { hanzi: "去", pinyinNoTone: "qu", pinyinTone: "qù", meaning: "đi", detail: "• Cấu tạo: Đi rời khỏi." },
+        { hanzi: "热", pinyinNoTone: "re", pinyinTone: "rè", meaning: "nóng", detail: "• Cấu tạo: Phía dưới có bộ hỏa 💥." },
+        { hanzi: "人", pinyinNoTone: "ren", pinyinTone: "rén", meaning: "người", detail: "• Cấu tạo: Hai chân bước." },
+        { hanzi: "认识", pinyinNoTone: "renshi", pinyinTone: "rènshi", meaning: "quen biết", detail: "• Cấu tạo: 认 + 识." },
         { hanzi: "三", pinyinNoTone: "san", pinyinTone: "sān", meaning: "số 3", detail: "• Cấu tạo: Ba nét ngang." },
-        { hanzi: "商店", pinyinNoTone: "shangdian", pinyinTone: "shāngdiàn", meaning: "cửa hàng", detail: "• Cấu tạo: 商 (thương mại) + 店 (quán 广)." },
-        { hanzi: "上", pinyinNoTone: "shang", pinyinTone: "shàng", meaning: "trên, lên", detail: "• Cấu tạo: Chỉ vị trí phía trên." },
-        { hanzi: "上午", pinyinNoTone: "shangwu", pinyinTone: "shàngwǔ", meaning: "buổi sáng", detail: "• Cấu tạo: 上 (trước) + 午 (giữa trưa)." },
-        { hanzi: "少", pinyinNoTone: "shao", pinyinTone: "shǎo", meaning: "ít", detail: "• Cấu tạo: 小 (nhỏ) bớt đi một nét." },
-        { hanzi: "谁", pinyinNoTone: "shei", pinyinTone: "shéi", meaning: "ai", detail: "• Cấu tạo: Bộ ngôn 讠 hỏi về người." },
-        { hanzi: "什么", pinyinNoTone: "shenme", pinyinTone: "shénme", meaning: "cái gì", detail: "• Cấu tạo: 什 (nhân 亻) + 么." },
-        { hanzi: "十", pinyinNoTone: "shi", pinyinTone: "shí", meaning: "số 10", detail: "• Cấu tạo: Tượng hình hình chữ thập." },
-        { hanzi: "时候", pinyinNoTone: "shihou", pinyinTone: "shíhou", meaning: "lúc, thời gian", detail: "• Cấu tạo: 时 (mặt trời 日) + 候 (nhân 亻)." },
+        { hanzi: "商店", pinyinNoTone: "shangdian", pinyinTone: "shāngdiàn", meaning: "cửa hàng", detail: "• Cấu tạo: 商 + 店." },
+        { hanzi: "上", pinyinNoTone: "shang", pinyinTone: "shàng", meaning: "trên, lên", detail: "• Cấu tạo: Vị trí phía trên." },
+        { hanzi: "上午", pinyinNoTone: "shangwu", pinyinTone: "shàngwǔ", meaning: "buổi sáng", detail: "• Cấu tạo: 上 + 午." },
+        { hanzi: "少", pinyinNoTone: "shao", pinyinTone: "shǎo", meaning: "ít", detail: "• Cấu tạo: 小 bớt nét." },
+        { hanzi: "谁", pinyinNoTone: "shei", pinyinTone: "shéi", meaning: "ai", detail: "• Cấu tạo: Bộ ngôn 讠 hỏi người." },
+        { hanzi: "什么", pinyinNoTone: "shenme", pinyinTone: "shénme", meaning: "cái gì", detail: "• Cấu tạo: 什 + 么." },
+        { hanzi: "十", pinyinNoTone: "shi", pinyinTone: "shí", meaning: "số 10", detail: "• Cấu tạo: Hình chữ thập." },
+        { hanzi: "时候", pinyinNoTone: "shihou", pinyinTone: "shíhou", meaning: "lúc, thời gian", detail: "• Cấu tạo: 时 + 候." },
         { hanzi: "是", pinyinNoTone: "shi", pinyinTone: "shì", meaning: "là, đúng", detail: "• Cấu tạo: Phía trên có bộ nhật 日." },
-        { hanzi: "书", pinyinNoTone: "shu", pinyinTone: "shū", meaning: "sách", detail: "• Cấu tạo: Tượng hình tay cầm bút viết sách." },
-        { hanzi: "水", pinyinNoTone: "shui", pinyinTone: "shuǐ", meaning: "nước", detail: "• Cấu tạo: Tượng hình dòng sông chảy." },
-        { hanzi: "水果", pinyinNoTone: "shuiguo", pinyinTone: "shuǐguǒ", meaning: "hoài quả, trái cây", detail: "• Cấu tạo: 水 (nước) + 果 (quả cây 木)." },
-        { hanzi: "睡觉", pinyinNoTone: "shuijiao", pinyinTone: "shuìjiào", meaning: "ngủ", detail: "• Cấu tạo: 睡 (mắt 目 nhắm lại) + 觉." },
-        { hanzi: "说话", pinyinNoTone: "shuohua", pinyinTone: "shuōhuà", meaning: "nói chuyện", detail: "• Cấu tạo: 说 (ngôn 讠) + 话 (ngôn 讠)." },
-        { hanzi: "四", pinyinNoTone: "si", pinyinTone: "sì", meaning: "số 4", detail: "• Cấu tạo: Khung bao 囗 xung quanh." },
-        { hanzi: "岁", pinyinNoTone: "sui", pinyinTone: "suì", meaning: "tuổi", detail: "• Cấu tạo: 山 (núi) + 夕 (buổi tối)." },
-        { hanzi: "他", pinyinNoTone: "ta", pinyinTone: "tā", meaning: "anh ấy, ông ấy", detail: "• Cấu tạo: Bộ nhân đứng 亻 (chỉ con người phái nam)." },
-        { hanzi: "她", pinyinNoTone: "ta", pinyinTone: "tā", meaning: "cô ấy, bà ấy", detail: "• Cấu tạo: Bộ nữ 女 (chỉ con người phái nữ)." },
-        { hanzi: "太", pinyinNoTone: "tai", pinyinTone: "tài", meaning: "quá, lắm", detail: "• Cấu tạo: Chữ 大 (lớn) thêm chấm phẩy bên dưới." },
-        { hanzi: "天气", pinyinNoTone: "tianqi", pinyinTone: "tiānqì", meaning: "thời tiết", detail: "• Cấu tạo: 天 (trời) + 气 (không khí/hơi nước)." },
-        { hanzi: "听", pinyinNoTone: "ting", pinyinTone: "tīng", meaning: "nghe", detail: "• Cấu tạo: 口 (dùng miệng/tai nghe ngóng)." },
-        { hanzi: "同学", pinyinNoTone: "tongxue", pinyinTone: "tóngxué", meaning: "bạn học", detail: "• Cấu tạo: 同 (cùng nhau) + 学 (học)." },
-        { hanzi: "喂", pinyinNoTone: "wei", pinyinTone: "wèi", meaning: "alo (nghe điện thoại)", detail: "• Cấu tạo: 口 (miệng trả lời điện thoại)." },
-        { hanzi: "我", pinyinNoTone: "wo", pinyinTone: "wǒ", meaning: "tôi", detail: "• Cấu tạo: Gồm bộ qua 戈 (vũ khí bảo vệ bản thân)." },
-        { hanzi: "我们", pinyinNoTone: "women", pinyinTone: "wǒmen", meaning: "chúng tôi", detail: "• Cấu tạo: 我 (tôi) + 们 (nhân đứng 亻 chỉ số nhiều)." },
-        { hanzi: "五", pinyinNoTone: "wu", pinyinTone: "wǔ", meaning: "số 5", detail: "• Cấu tạo: Số năm trong chữ Hán." },
-        { hanzi: "喜欢", pinyinNoTone: "xihuan", pinyinTone: "xǐhuan", meaning: "thích", detail: "• Cấu tạo: 喜 (vui vẻ 口) + 欢 (khiếm 欠)." },
-        { hanzi: "下", pinyinNoTone: "xia", pinyinTone: "xià", meaning: "dưới, xuống", detail: "• Cấu tạo: Chỉ vị trí phía dưới." },
-        { hanzi: "下午", pinyinNoTone: "xiawu", pinyinTone: "xiàwǔ", meaning: "buổi chiều", detail: "• Cấu tạo: 下 (sau) + 午 (trưa)." },
-        { hanzi: "下雨", pinyinNoTone: "xiayu", pinyinTone: "xiàyǔ", meaning: "mưa rơi", detail: "• Cấu tạo: 下 (rơi xuống) + 雨 (mưa)." },
-        { hanzi: "先生", pinyinNoTone: "xiansheng", pinyinTone: "xiānsheng", meaning: "ngài, ông", detail: "• Cấu tạo: 先 (trước) + 生 (sinh ra)." },
-        { hanzi: "现在", pinyinNoTone: "xianzai", pinyinTone: "xiànzài", meaning: "hiện tại, bây giờ", detail: "• Cấu tạo: 现 (vương 王) + 在 (tại)." },
-        { hanzi: "想", pinyinNoTone: "xiang", pinyinTone: "xiǎng", meaning: "muốn, nhớ, suy nghĩ", detail: "• Cấu tạo: 相 + 心 (tấm lòng suy nghĩ suy tư)." },
-        { hanzi: "小", pinyinNoTone: "xiao", pinyinTone: "xiǎo", meaning: "nhỏ, bé", detail: "• Cấu tạo: Nét đứng giữa chia nhỏ hai bên." },
-        { hanzi: "小姐", pinyinNoTone: "xiaojie", pinyinTone: "xiǎojiě", meaning: "cô gái, tiểu thư", detail: "• Cấu tạo: 小 (nhỏ) + 姐 (bộ nữ 女)." },
-        { hanzi: "些", pinyinNoTone: "xie", pinyinTone: "xiē", meaning: "một vài, một ít", detail: "• Cấu tạo: 此 + 二 (hai/ít)." },
-        { hanzi: "写", pinyinNoTone: "xie", pinyinTone: "xiě", meaning: "viết", detail: "• Cấu tạo: 🚀 Mịch 💥 nắp đậy viết lách." },
-        { hanzi: "谢谢", pinyinNoTone: "xiexie", pinyinTone: "xièxie", meaning: "cảm ơn", detail: "• Cấu tạo: Bộ ngôn 讠 (dùng lời nói cảm ơn)." },
-        { hanzi: "星期", pinyinNoTone: "xingqi", pinyinTone: "xīngqī", meaning: "tuần, thứ", detail: "• Cấu tạo: 星 (ngôi sao 日) + 期 (nguyệt 月)." },
-        { hanzi: "学生", pinyinNoTone: "xuesheng", pinyinTone: "xuésheng", meaning: "học sinh", detail: "• Cấu tạo: 学 (học 宀) + 生 (sinh)." },
-        { hanzi: "学习", pinyinNoTone: "xuexi", pinyinTone: "xuéxí", meaning: "học tập", detail: "• Cấu tạo: 学 (học) + 习 (tập luyện)." },
-        { hanzi: "学校", pinyinNoTone: "xuexiao", pinyinTone: "xuéxiào", meaning: "trường học", detail: "• Cấu tạo: 学 (học) + 校 (gỗ 木/trường)." },
-        { hanzi: "一", pinyinNoTone: "yi", pinyinTone: "yī", meaning: "số 1", detail: "• Cấu tạo: Một nét ngang duy nhất." },
-        { hanzi: "衣服", pinyinNoTone: "yifu", pinyinTone: "yīfu", meaning: "quần áo", detail: "• Cấu tạo: 衣 (bộ y 衣) + 服 (bộ nguyệt 月)." },
-        { hanzi: "医生", pinyinNoTone: "yisheng", pinyinTone: "yīshēng", meaning: "bác sĩ", detail: "• Cấu tạo: 医 (y học) + 生 (sinh)." },
-        { hanzi: "医院", pinyinNoTone: "yiyuan", pinyinTone: "yīyuàn", meaning: "bệnh viện", detail: "• Cấu tạo: 医 (y) + 院 (bộ ấp 阝 viện)." },
-        { hanzi: "椅", pinyinNoTone: "yi", pinyinTone: "yǐzi", meaning: "cái ghế", detail: "• Cấu tạo: 木 (gỗ làm ghế) + 子." },
-        { hanzi: "有", pinyinNoTone: "you", pinyinTone: "yǒu", meaning: "có", detail: "• Cấu tạo: 𠀴 + 月 (bàn tay nắm giữ)." },
-        { hanzi: "月", pinyinNoTone: "yue", pinyinTone: "yuè", meaning: "tháng, mặt trăng", detail: "• Cấu tạo: Tượng hình hình bán nguyệt mặt trăng." },
-        { hanzi: "再见", pinyinNoTone: "zaijian", pinyinTone: "zàijiàn", meaning: "tạm biệt", detail: "• Cấu tạo: 再 (lại) + 见 (gặp mặt 见)." },
-        { hanzi: "在", pinyinNoTone: "zai", pinyinTone: "zài", meaning: "ở, tại", detail: "• Cấu tạo: Bộ thổ 土 (đất/ở tại chỗ)." },
-        { hanzi: "怎么", pinyinNoTone: "zenme", pinyinTone: "zěnme", meaning: "làm sao, thế nào", detail: "• Cấu tạo: 怎 (tâm 心) + 么." },
-        { hanzi: "怎么样", pinyinNoTone: "zenmeyang", pinyinTone: "zěnmeyàng", meaning: "như thế nào", detail: "• Cấu tạo: 怎 + 么 + 样 (mộc 木)." },
-        { hanzi: "这", pinyinNoTone: "zhe", pinyinTone: "zhè", meaning: "đây, này", detail: "• Cấu tạo: Bộ xước 辶 di chuyển gần." },
-        { hanzi: "中国", pinyinNoTone: "zhongguo", pinyinTone: "Zhōngguó", meaning: "Trung Quốc", detail: "• Cấu tạo: 中 (trung tâm) + 国 (bộ vi 囗 bao ngọc 玉)." },
-        { hanzi: "中午", pinyinNoTone: "zhongwu", pinyinTone: "zhōngwǔ", meaning: "buổi trưa", detail: "• Cấu tạo: 中 (giữa) + 午 (ngọ/trưa)." },
-        { hanzi: "住", pinyinNoTone: "zhu", pinyinTone: "zhù", meaning: "sống, ở", detail: "• Cấu tạo: 亻 (con người) + 主 (chủ thể định cư)." },
-        { hanzi: "桌子", pinyinNoTone: "zhuozi", pinyinTone: "zhuōzi", meaning: "cái bàn", detail: "• Cấu tạo: 木 (gỗ làm bàn) + 子." },
-        { hanzi: "字", pinyinNoTone: "zi", pinyinTone: "zì", meaning: "chữ Hán", detail: "• Cấu tạo: 宀 (mái nhà) + 子 (con cái nuôi dưỡng kiến thức)." },
-        { hanzi: "昨天", pinyinNoTone: "zuotian", pinyinTone: "zuótiān", meaning: "ngày hôm qua", detail: "• Cấu tạo: 昨 (mặt trời 日 đã qua) + 天." },
-        { hanzi: "坐", pinyinNoTone: "zuo", pinyinTone: "zuò", meaning: "ngồi", detail: "• Cấu tạo: Hai người 人 ngồi trên mặt đất 土." },
-        { hanzi: "做", pinyinNoTone: "zuo", pinyinTone: "zuò", meaning: "làm", detail: "• Cấu tạo: 亻 (người) làm việc." }
+        { hanzi: "书", pinyinNoTone: "shu", pinyinTone: "shū", meaning: "sách", detail: "• Cấu tạo: Tay cầm bút viết." },
+        { hanzi: "水", pinyinNoTone: "shui", pinyinTone: "shuǐ", meaning: "nước", detail: "• Cấu tạo: Dòng sông chảy." },
+        { hanzi: "水果", pinyinNoTone: "shuiguo", pinyinTone: "shuǐguǒ", meaning: "trái cây", detail: "• Cấu tạo: 水 + 果." },
+        { hanzi: "睡觉", pinyinNoTone: "shuijiao", pinyinTone: "shuìjiào", meaning: "ngủ", detail: "• Cấu tạo: 睡 + 觉." },
+        { hanzi: "说话", pinyinNoTone: "shuohua", pinyinTone: "shuōhuà", meaning: "nói chuyện", detail: "• Cấu tạo: 说 + 话." },
+        { hanzi: "四", pinyinNoTone: "si", pinyinTone: "sì", meaning: "số 4", detail: "• Cấu tạo: Khung bao 囗." },
+        { hanzi: "岁", pinyinNoTone: "sui", pinyinTone: "suì", meaning: "tuổi", detail: "• Cấu tạo: 山 + 夕." },
+        { hanzi: "他", pinyinNoTone: "ta", pinyinTone: "tā", meaning: "anh ấy", detail: "• Cấu tạo: 亻 (phái nam)." },
+        { hanzi: "她", pinyinNoTone: "ta", pinyinTone: "tā", meaning: "cô ấy", detail: "• Cấu tạo: 女 (phái nữ)." },
+        { hanzi: "太", pinyinNoTone: "tai", pinyinTone: "tài", meaning: "quá, lắm", detail: "• Cấu tạo: 大 thêm chấm phẩy." },
+        { hanzi: "天气", pinyinNoTone: "tianqi", pinyinTone: "tiānqì", meaning: "thời tiết", detail: "• Cấu tạo: 天 + 气." },
+        { hanzi: "听", pinyinNoTone: "ting", pinyinTone: "tīng", meaning: "nghe", detail: "• Cấu tạo: Dùng tai nghe." },
+        { hanzi: "同学", pinyinNoTone: "tongxue", pinyinTone: "tóngxué", meaning: "bạn học", detail: "• Cấu tạo: 同 + 学." },
+        { hanzi: "喂", pinyinNoTone: "wei", pinyinTone: "wèi", meaning: "alo", detail: "• Cấu tạo: 口 (miệng)." },
+        { hanzi: "我", pinyinNoTone: "wo", pinyinTone: "wǒ", meaning: "tôi", detail: "• Cấu tạo: Bộ qua 戈." },
+        { hanzi: "我们", pinyinNoTone: "women", pinyinTone: "wǒmen", meaning: "chúng tôi", detail: "• Cấu tạo: 我 + 们." },
+        { hanzi: "五", pinyinNoTone: "wu", pinyinTone: "wǔ", meaning: "số 5", detail: "• Cấu tạo: Số năm." },
+        { hanzi: "喜欢", pinyinNoTone: "xihuan", pinyinTone: "xǐhuan", meaning: "thích", detail: "• Cấu tạo: 喜 + 欢." },
+        { hanzi: "下", pinyinNoTone: "xia", pinyinTone: "xià", meaning: "dưới, xuống", detail: "• Cấu tạo: Vị trí phía dưới." },
+        { hanzi: "下午", pinyinNoTone: "xiawu", pinyinTone: "xiàwǔ", meaning: "buổi chiều", detail: "• Cấu tạo: 下 + 午." },
+        { hanzi: "下雨", pinyinNoTone: "xiayu", pinyinTone: "xiàyǔ", meaning: "mưa rơi", detail: "• Cấu tạo: 下 + 雨." },
+        { hanzi: "先生", pinyinNoTone: "xiansheng", pinyinTone: "xiānsheng", meaning: "ngài, ông", detail: "• Cấu tạo: 先 + 生." },
+        { hanzi: "现在", pinyinNoTone: "xianzai", pinyinTone: "xiànzài", meaning: "bây giờ", detail: "• Cấu tạo: 现 + 在." },
+        { hanzi: "想", pinyinNoTone: "xiang", pinyinTone: "xiǎng", meaning: "muốn, nhớ", detail: "• Cấu tạo: 相 + 心." },
+        { hanzi: "小", pinyinNoTone: "xiao", pinyinTone: "xiǎo", meaning: "nhỏ, bé", detail: "• Cấu tạo: Chia nhỏ." },
+        { hanzi: "小姐", pinyinNoTone: "xiaojie", pinyinTone: "xiǎojiě", meaning: "cô gái", detail: "• Cấu tạo: 小 + 姐." },
+        { hanzi: "些", pinyinNoTone: "xie", pinyinTone: "xiē", meaning: "một vài", detail: "• Cấu tạo: 此 + 二." },
+        { hanzi: "写", pinyinNoTone: "xie", pinyinTone: "xiě", meaning: "viết", detail: "• Cấu tạo: Viết lách." },
+        { hanzi: "谢谢", pinyinNoTone: "xiexie", pinyinTone: "xièxie", meaning: "cảm ơn", detail: "• Cấu tạo: Bộ ngôn 讠." },
+        { hanzi: "星期", pinyinNoTone: "xingqi", pinyinTone: "xīngqī", meaning: "tuần, thứ", detail: "• Cấu tạo: 星 + 期." },
+        { hanzi: "学生", pinyinNoTone: "xuesheng", pinyinTone: "xuésheng", meaning: "học sinh", detail: "• Cấu tạo: 学 + 生." },
+        { hanzi: "学习", pinyinNoTone: "xuexi", pinyinTone: "xuéxí", meaning: "học tập", detail: "• Cấu tạo: 学 + 习." },
+        { hanzi: "学校", pinyinNoTone: "xuexiao", pinyinTone: "xuéxiào", meaning: "trường học", detail: "• Cấu tạo: 学 + 校." },
+        { hanzi: "一", pinyinNoTone: "yi", pinyinTone: "yī", meaning: "số 1", detail: "• Cấu tạo: Một nét ngang." },
+        { hanzi: "衣服", pinyinNoTone: "yifu", pinyinTone: "yīfu", meaning: "quần áo", detail: "• Cấu tạo: 衣 + 服." },
+        { hanzi: "医生", pinyinNoTone: "yisheng", pinyinTone: "yīshēng", meaning: "bác sĩ", detail: "• Cấu tạo: 医 + 生." },
+        { hanzi: "医院", pinyinNoTone: "yiyuan", pinyinTone: "yīyuàn", meaning: "bệnh viện", detail: "• Cấu tạo: 医 + 院." },
+        { hanzi: "椅", pinyinNoTone: "yi", pinyinTone: "yǐzi", meaning: "cái ghế", detail: "• Cấu tạo: 木 + 子." },
+        { hanzi: "有", pinyinNoTone: "you", pinyinTone: "yǒu", meaning: "có", detail: "• Cấu tạo: Bàn tay nắm giữ." },
+        { hanzi: "月", pinyinNoTone: "yue", pinyinTone: "yuè", meaning: "tháng, mặt trăng", detail: "• Cấu tạo: Mặt trăng." },
+        { hanzi: "再见", pinyinNoTone: "zaijian", pinyinTone: "zàijiàn", meaning: "tạm biệt", detail: "• Cấu tạo: 再 + 见." },
+        { hanzi: "在", pinyinNoTone: "zai", pinyinTone: "zài", meaning: "ở, tại", detail: "• Cấu tạo: Bộ thổ 土." },
+        { hanzi: "怎么", pinyinNoTone: "zenme", pinyinTone: "zěnme", meaning: "làm sao, thế nào", detail: "• Cấu tạo: 怎 + 么." },
+        { hanzi: "怎么样", pinyinNoTone: "zenmeyang", pinyinTone: "zěnmeyàng", meaning: "như thế nào", detail: "• Cấu tạo: 怎 + 么 + 样." },
+        { hanzi: "这", pinyinNoTone: "zhe", pinyinTone: "zhè", meaning: "đây, này", detail: "• Cấu tạo: Bộ xước 辶." },
+        { hanzi: "中国", pinyinNoTone: "zhongguo", pinyinTone: "Zhōngguó", meaning: "Trung Quốc", detail: "• Cấu tạo: 中 + 国." },
+        { hanzi: "中午", pinyinNoTone: "zhongwu", pinyinTone: "zhōngwǔ", meaning: "buổi trưa", detail: "• Cấu tạo: 中 + 午." },
+        { hanzi: "住", pinyinNoTone: "zhu", pinyinTone: "zhù", meaning: "sống, ở", detail: "• Cấu tạo: 亻 + 主." },
+        { hanzi: "桌子", pinyinNoTone: "zhuozi", pinyinTone: "zhuōzi", meaning: "cái bàn", detail: "• Cấu tạo: 木 + 子." },
+        { hanzi: "字", pinyinNoTone: "zi", pinyinTone: "zì", meaning: "chữ Hán", detail: "• Cấu tạo: 宀 + 子." },
+        { hanzi: "昨天", pinyinNoTone: "zuotian", pinyinTone: "zuótiān", meaning: "ngày hôm qua", detail: "• Cấu tạo: 昨 + 天." },
+        { hanzi: "坐", pinyinNoTone: "zuo", pinyinTone: "zuò", meaning: "ngồi", detail: "• Cấu tạo: Hai người ngồi trên đất." },
+        { hanzi: "做", pinyinNoTone: "zuo", pinyinTone: "zuò", meaning: "làm", detail: "• Cấu tạo: 亻 làm việc." }
     ];
 
     const hsk2Data = [
         { hanzi: "吧", pinyinNoTone: "ba", pinyinTone: "ba", meaning: "nhỉ, nhé (trợ từ)", detail: "• Cấu tạo: 口 (Miệng) + 巴.<br>• Mẹo nhớ: Dùng cái <b>miệng (口)</b> nói câu đề nghị với âm <b>ba (巴)</b>." },
-        { hanzi: "白", pinyinNoTone: "bai", pinyinTone: "bái", meaning: "trắng", detail: "• Cấu tạo: Biến thể từ mặt trời 日 có thêm tia sáng.<br>• Mẹo nhớ: Ánh sáng ban ngày làm mọi vật trở nên <b>trắng (白)</b> sáng." },
-        { hanzi: "百", pinyinNoTone: "bai", pinyinTone: "bǎi", meaning: "trăm", detail: "• Cấu tạo: 一 (một) + 白 (trắng)." },
-        { hanzi: "帮助", pinyinNoTone: "bangzhu", pinyinTone: "bāngzhù", meaning: "giúp đỡ", detail: "• Cấu tạo: 帮 + 助 (Lực 力).<br>• Mẹo nhớ: Dùng <b>sức lực (力)</b> để <b>giúp đỡ (帮助)</b> người khác." },
-        { hanzi: "报纸", pinyinNoTone: "baozhi", pinyinTone: "bàozhǐ", meaning: "báo chí", detail: "• Cấu tạo: 报 (Tay 扌) + 纸 (Giấy 纟)." },
-        { hanzi: "比", pinyinNoTone: "bi", pinyinTone: "bǐ", meaning: "so với", detail: "• Cấu tạo: Hai người đứng song song để <b>so sánh (比)</b>." },
-        { hanzi: "别", pinyinNoTone: "bie", pinyinTone: "bié", meaning: "đừng, khác", detail: "• Cấu tạo: 口 (miệng) + 刂 (dao)." },
-        { hanzi: "宾馆", pinyinNoTone: "binguan", pinyinTone: "bīnguǎn", meaning: "khách sạn", detail: "• Cấu tạo: 宾 (Mái nhà 宀 đón khách) + 馆." },
+        { hanzi: "白", pinyinNoTone: "bai", pinyinTone: "bái", meaning: "trắng", detail: "• Cấu tạo: Mặt trời 日 có thêm tia sáng." },
+        { hanzi: "百", pinyinNoTone: "bai", pinyinTone: "bǎi", meaning: "trăm", detail: "• Cấu tạo: 一 + 白." },
+        { hanzi: "帮助", pinyinNoTone: "bangzhu", pinyinTone: "bāngzhù", meaning: "giúp đỡ", detail: "• Cấu tạo: 帮 + 助 (Lực 力).<br>• Mẹo nhớ: Dùng <b>sức lực (力)</b> để <b>giúp đỡ (帮助)</b>." },
+        { hanzi: "报纸", pinyinNoTone: "baozhi", pinyinTone: "bàozhǐ", meaning: "báo chí", detail: "• Cấu tạo: 报 (Tay 扌) + 纸 (Giấy)." },
+        { hanzi: "比", pinyinNoTone: "bi", pinyinTone: "bǐ", meaning: "so với", detail: "• Cấu tạo: Hai người đứng song song." },
+        { hanzi: "别", pinyinNoTone: "bie", pinyinTone: "bié", meaning: "đừng, khác", detail: "• Cấu tạo: 口 + 刂." },
+        { hanzi: "宾馆", pinyinNoTone: "binguan", pinyinTone: "bīnguǎn", meaning: "khách sạn", detail: "• Cấu tạo: 宾 (Mái nhà 宀) + 馆." },
         { hanzi: "长", pinyinNoTone: "chang", pinyinTone: "cháng", meaning: "dài", detail: "• Cấu tạo: Tượng hình mái tóc dài." },
-        { hanzi: "唱歌", pinyinNoTone: "changge", pinyinTone: "chànggē", meaning: "ca hát", detail: "• Cấu tạo: 唱 (Miệng 口) + 歌 (Phát ra tiếng)." },
-        { hanzi: "出", pinyinNoTone: "chu", pinyinTone: "chū", meaning: "ra", detail: "• Cấu tạo: Chân bước từ hang ra ngoài." },
-        { hanzi: "穿", pinyinNoTone: "chuan", pinyinTone: "chuān", meaning: "mặc", detail: "• Cấu tạo: 穴 (hang) + Xuyên qua quần áo." },
-        { hanzi: "次", pinyinNoTone: "ci", pinyinTone: "cì", meaning: "lần", detail: "• Cấu tạo: Lạnh thấu xương thở ra từng <b>lần (次)</b>." },
-        { hanzi: "从", pinyinNoTone: "cong", pinyinTone: "cóng", meaning: "từ", detail: "• Cấu tạo: Hai người đi nối đuôi nhau xuất phát <b>từ (从)</b>." },
-        { hanzi: "错", pinyinNoTone: "cuo", pinyinTone: "cuò", meaning: "sai", detail: "• Cấu tạo: 钅 (kim loại) đúc lỗi bị <b>sai (错)</b>." },
-        { hanzi: "打篮球", pinyinNoTone: "dalanqiu", pinyinTone: "dǎ lánqiú", meaning: "đánh bóng rổ", detail: "• Cấu tạo: 打 (Tay) + 篮 (Rổ) + 球 (Bóng)." },
-        { hanzi: "大家", pinyinNoTone: "dajia", pinyinTone: "dàjiā", meaning: "mọi người", detail: "• Cấu tạo: 大 (lớn) + 家 (Gia đình 宀)." },
+        { hanzi: "唱歌", pinyinNoTone: "changge", pinyinTone: "chànggē", meaning: "ca hát", detail: "• Cấu tạo: 唱 (Miệng) + 歌." },
+        { hanzi: "出", pinyinNoTone: "chu", pinyinTone: "chū", meaning: "ra", detail: "• Cấu tạo: Chân bước ra khỏi hang." },
+        { hanzi: "穿", pinyinNoTone: "chuan", pinyinTone: "chuān", meaning: "mặc", detail: "• Cấu tạo: 穴 + Xuyên quần áo." },
+        { hanzi: "次", pinyinNoTone: "ci", pinyinTone: "cì", meaning: "lần", detail: "• Cấu tạo: 冫 + 欠." },
+        { hanzi: "从", pinyinNoTone: "cong", pinyinTone: "cóng", meaning: "từ", detail: "• Cấu tạo: Hai người nối đuôi." },
+        { hanzi: "错", pinyinNoTone: "cuo", pinyinTone: "cuò", meaning: "sai", detail: "• Cấu tạo: 钅 (kim loại đúc lỗi)." },
+        { hanzi: "打篮球", pinyinNoTone: "dalanqiu", pinyinTone: "dǎ lánqiú", meaning: "đánh bóng rổ", detail: "• Cấu tạo: 打 + 篮 + 球." },
+        { hanzi: "大家", pinyinNoTone: "dajia", pinyinTone: "dàjiā", meaning: "mọi người", detail: "• Cấu tạo: 大 + 家." },
         { hanzi: "但是", pinyinNoTone: "danshi", pinyinTone: "dànshì", meaning: "nhưng mà", detail: "• Cấu tạo: Từ chuyển ý." },
-        { hanzi: "到", pinyinNoTone: "dao", pinyinTone: "dào", meaning: "đến", detail: "• Cấu tạo: 刂 + 至 (đích đến)." },
-        { hanzi: "得", pinyinNoTone: "de", pinyinTone: "de", meaning: "trợ từ kết cấu", detail: "• Cấu tạo: 彳 (bước chân)." },
-        { hanzi: "等", pinyinNoTone: "deng", pinyinTone: "děng", meaning: "đợi, chờ", detail: "• Cấu tạo: ⺮ (tre) + 寸." },
+        { hanzi: "到", pinyinNoTone: "dao", pinyinTone: "dào", meaning: "đến", detail: "• Cấu tạo: 刂 + 至." },
+        { hanzi: "得", pinyinNoTone: "de", pinyinTone: "de", meaning: "trợ từ kết cấu", detail: "• Cấu tạo: 彳." },
+        { hanzi: "等", pinyinNoTone: "deng", pinyinTone: "děng", meaning: "đợi, chờ", detail: "• Cấu tạo: ⺮ + 寸." },
         { hanzi: "弟弟", pinyinNoTone: "didi", pinyinTone: "dìdi", meaning: "em trai", detail: "• Cấu tạo: 弓 (cây cung)." },
         { hanzi: "第一", pinyinNoTone: "diyiyi", pinyinTone: "dì yī", meaning: "thứ nhất", detail: "• Cấu tạo: 第 + 一." },
-        { hanzi: "懂", pinyinNoTone: "dong", pinyinTone: "dǒng", meaning: "hiểu", detail: "• Cấu tạo: 忄 (tấm lòng/trí tuệ) thấu <b>hiểu (懂)</b>." },
+        { hanzi: "懂", pinyinNoTone: "dong", pinyinTone: "dǒng", meaning: "hiểu", detail: "• Cấu tạo: 忄 (tấm lòng/trí tuệ)." },
         { hanzi: "对", pinyinNoTone: "dui", pinyinTone: "duì", meaning: "đối với, đúng", detail: "• Cấu tạo: Hướng về phía đối phương." },
-        { hanzi: "房间", pinyinNoTone: "fangjian", pinyinTone: "fángjiān", meaning: "phòng", detail: "• Cấu tạo: 房 (Cửa 户) + 间 (Môn 门)." },
-        { hanzi: "非常", pinyinNoTone: "feichang", pinyinTone: "fēicháng", meaning: "vô cùng", detail: "• Cấu tạo: Vượt mức bình thường là <b>vô cùng (非常)</b>." },
-        { hanzi: "服务员", pinyinNoTone: "fuwuyuan", pinyinTone: "fúwùyuán", meaning: "nhân viên phục vụ", detail: "• Cấu tạo: 服 + 务 (Lực) + 员." },
-        { hanzi: "高", pinyinNoTone: "gao", pinyinTone: "gāo", meaning: "cao", detail: "• Cấu tạo: Tượng hình tòa tháp cao." },
-        { hanzi: "告诉", pinyinNoTone: "gaosu", pinyinTone: "gàosù", meaning: "nói cho biết", detail: "• Cấu tạo: 告 (Trâu + Miệng) + 诉 (Ngôn 讠)." },
+        { hanzi: "房间", pinyinNoTone: "fangjian", pinyinTone: "fángjiān", meaning: "phòng", detail: "• Cấu tạo: 房 + 间." },
+        { hanzi: "非常", pinyinNoTone: "feichang", pinyinTone: "fēicháng", meaning: "vô cùng", detail: "• Cấu tạo: Vượt mức bình thường." },
+        { hanzi: "服务员", pinyinNoTone: "fuwuyuan", pinyinTone: "fúwùyuán", meaning: "nhân viên phục vụ", detail: "• Cấu tạo: 服 + 务 + 员." },
+        { hanzi: "高", pinyinNoTone: "gao", pinyinTone: "gāo", meaning: "cao", detail: "• Cấu tạo: Tòa tháp cao." },
+        { hanzi: "告诉", pinyinNoTone: "gaosu", pinyinTone: "gàosù", meaning: "nói cho biết", detail: "• Cấu tạo: 告 + 诉." },
         { hanzi: "哥哥", pinyinNoTone: "gege", pinyinTone: "gēge", meaning: "anh trai", detail: "• Cấu tạo: 可 lặp lại 2 lần." },
-        { hanzi: "给", pinyinNoTone: "gei", pinyinTone: "gěi", meaning: "cho, đưa", detail: "• Cấu tạo: 纟 (tơ) + 合." },
-        { hanzi: "公共汽车", pinyinNoTone: "gonggongqiche", pinyinTone: "gōnggòng qìchē", meaning: "xe buýt", detail: "• Cấu tạo: Công cộng + Xe hơi nước." },
-        { hanzi: "公司", pinyinNoTone: "gongsi", pinyinTone: "gōngsī", meaning: "công ty", detail: "• Cấu tạo: Công + Cơ quan quản lý." },
-        { hanzi: "贵", pinyinNoTone: "gui", pinyinTone: "guì", meaning: "đắt, quý", detail: "• Cấu tạo: Có chữ 贝 (tiền tài/vỏ sò) phía dưới." },
+        { hanzi: "给", pinyinNoTone: "gei", pinyinTone: "gěi", meaning: "cho, đưa", detail: "• Cấu tạo: 纟 + 合." },
+        { hanzi: "公共汽车", pinyinNoTone: "gonggongqiche", pinyinTone: "gōnggòng qìchē", meaning: "xe buýt", detail: "• Cấu tạo: 公共 + 汽车." },
+        { hanzi: "公司", pinyinNoTone: "gongsi", pinyinTone: "gōngsī", meaning: "công ty", detail: "• Cấu tạo: Công + Sư." },
+        { hanzi: "贵", pinyinNoTone: "gui", pinyinTone: "guì", meaning: "đắt, quý", detail: "• Cấu tạo: Có 贝 (tiền tài)." },
         { hanzi: "还", pinyinNoTone: "hai", pinyinTone: "hái", meaning: "còn, vẫn", detail: "• Cấu tạo: 辶 + 不." },
         { hanzi: "孩子", pinyinNoTone: "haizi", pinyinTone: "háizi", meaning: "trẻ em", detail: "• Cấu tạo: 孩 + 子." },
-        { hanzi: "好吃", pinyinNoTone: "haochi", pinyinTone: "hǎochī", meaning: "ngon", detail: "• Cấu tạo: 好 (Tốt) + 吃 (Miệng ăn)." },
-        { hanzi: "黑", pinyinNoTone: "hei", pinyinTone: "hēi", meaning: "đen", detail: "• Cấu tạo: Khói bếp bốc lên tạo muội <b>đen (黑)</b>." },
-        { hanzi: "红", pinyinNoTone: "hong", pinyinTone: "hóng", meaning: "đỏ", detail: "• Cấu tạo: 纟 (tơ) màu đỏ." },
-        { hanzi: "机场", pinyinNoTone: "jichang", pinyinTone: "jīchǎng", meaning: "sân bay", detail: "• Cấu tạo: 机 (Máy) + 场 (Bãi đất)." },
-        { hanzi: "鸡蛋", pinyinNoTone: "jidan", pinyinTone: "jīdàn", meaning: "trứng gà", detail: "• Cấu tạo: 鸡 (Gà) + 蛋 (Trứng)." },
+        { hanzi: "好吃", pinyinNoTone: "haochi", pinyinTone: "hǎochī", meaning: "ngon", detail: "• Cấu tạo: 好 + 吃." },
+        { hanzi: "黑", pinyinNoTone: "hei", pinyinTone: "hēi", meaning: "đen", detail: "• Cấu tạo: Khói bếp tạo muội đen." },
+        { hanzi: "红", pinyinNoTone: "hong", pinyinTone: "hóng", meaning: "đỏ", detail: "• Cấu tạo: 纟 (tơ màu đỏ)." },
+        { hanzi: "机场", pinyinNoTone: "jichang", pinyinTone: "jīchǎng", meaning: "sân bay", detail: "• Cấu tạo: 机 + 场." },
+        { hanzi: "鸡蛋", pinyinNoTone: "jidan", pinyinTone: "jīdàn", meaning: "trứng gà", detail: "• Cấu tạo: 鸡 + 蛋." },
         { hanzi: "件", pinyinNoTone: "jian", pinyinTone: "jiàn", meaning: "chiếc (lượng từ)", detail: "• Cấu tạo: 亻 + 人." },
-        { hanzi: "教室", pinyinNoTone: "jiaoshi", pinyinTone: "jiàoshì", meaning: "phòng học", detail: "• Cấu tạo: 教 (Dạy) + 室 (Phòng)." },
+        { hanzi: "教室", pinyinNoTone: "jiaoshi", pinyinTone: "jiàoshì", meaning: "phòng học", detail: "• Cấu tạo: 教 + 室." },
         { hanzi: "姐姐", pinyinNoTone: "jiejie", pinyinTone: "jiějie", meaning: "chị gái", detail: "• Cấu tạo: Bộ nữ 女." },
-        { hanzi: "介绍", pinyinNoTone: "jieshao", pinyinTone: "jièshào", meaning: "giới thiệu", detail: "• Cấu tạo: 介 + 绍 (Tơ sợi kết nối)." },
+        { hanzi: "介绍", pinyinNoTone: "jieshao", pinyinTone: "jièshào", meaning: "giới thiệu", detail: "• Cấu tạo: 介 + 绍." },
         { hanzi: "进", pinyinNoTone: "jin", pinyinTone: "jìn", meaning: "vào", detail: "• Cấu tạo: 辶 (tiến lên)." },
         { hanzi: "近", pinyinNoTone: "jin", pinyinTone: "jìn", meaning: "gần", detail: "• Cấu tạo: 辶 (cự ly gần)." },
         { hanzi: "就", pinyinNoTone: "jiu", pinyinTone: "jiù", meaning: "thì, ngay", detail: "• Cấu tạo: 京 + 曰." },
         { hanzi: "觉得", pinyinNoTone: "juede", pinyinTone: "juéde", meaning: "cảm thấy", detail: "• Cấu tạo: 觉 + 得." },
-        { hanzi: "咖啡", pinyinNoTone: "kafei", pinyinTone: "kāfēi", meaning: "cà phê", detail: "• Cấu tạo: Phiên âm nước ngoài." },
-        { hanzi: "开始", pinyinNoTone: "kaishi", pinyinTone: "kāishǐ", meaning: "bắt đầu", detail: "• Cấu tạo: 开 (Mở 门) + 始." },
-        { hanzi: "考试", pinyinNoTone: "kaoshi", pinyinTone: "kǎoshì", meaning: "thi cử", detail: "• Cấu tạo: 考 + 试 (Thử thách)." },
+        { hanzi: "咖啡", pinyinNoTone: "kafei", pinyinTone: "kāfēi", meaning: "cà phê", detail: "• Cấu tạo: Từ mượn." },
+        { hanzi: "开始", pinyinNoTone: "kaishi", pinyinTone: "kāishǐ", meaning: "bắt đầu", detail: "• Cấu tạo: 开 + 始." },
+        { hanzi: "考试", pinyinNoTone: "kaoshi", pinyinTone: "kǎoshì", meaning: "thi cử", detail: "• Cấu tạo: 考 + 试." },
         { hanzi: "可能", pinyinNoTone: "keneng", pinyinTone: "kěnéng", meaning: "có thể", detail: "• Cấu tạo: 可 + 能." },
         { hanzi: "可以", pinyinNoTone: "keyi", pinyinTone: "kěyǐ", meaning: "được", detail: "• Cấu tạo: Có thể, được phép." },
-        { hanzi: "课", pinyinNoTone: "ke", pinyinTone: "kè", meaning: "bài học", detail: "• Cấu tạo: 讠 (lời giảng)." },
-        { hanzi: "快", pinyinNoTone: "kuai", pinyinTone: "kuài", meaning: "nhanh, vui", detail: "• Cấu tạo: 忄 (tấm lòng) vui vẻ, <b>nhanh (快)</b>." },
-        { hanzi: "快乐", pinyinNoTone: "kuaile", pinyinTone: "kuàilè", meaning: "vui vẻ", detail: "• Cấu tạo: 快 + 乐 (nhạc)." },
-        { hanzi: "累", pinyinNoTone: "lei", pinyinTone: "lèi", meaning: "mệt", detail: "• Cấu tạo: 田 + 力 (tốn sức làm việc nên <b>mệt (累)</b>)." },
-        { hanzi: "离", pinyinNoTone: "li", pinyinTone: "lí", meaning: "cách", detail: "• Cấu tạo: Chim bay rời khỏi tổ." },
-        { hanzi: "两", pinyinNoTone: "liang", pinyinTone: "liǎng", meaning: "hai", detail: "• Cấu tạo: Số lượng cặp đôi." },
-        { hanzi: "零", pinyinNoTone: "ling", pinyinTone: "líng", meaning: "số 0", detail: "• Cấu tạo: 雨 (mưa rơi lất phất như số 0)." },
-        { hanzi: "路", pinyinNoTone: "lu", pinyinTone: "lù", meaning: "đường", detail: "• Cấu tạo: 足 (chân đi trên <b>đường (路)</b>)." },
-        { hanzi: "旅游", pinyinNoTone: "lvyou", pinyinTone: "lǚyóu", meaning: "du lịch", detail: "• Cấu tạo: 旅 (Đi xa) + 游 (Nước)." },
-        { hanzi: "卖", pinyinNoTone: "mai", pinyinTone: "mài", meaning: "bán", detail: "• Cấu tạo: 十 + 出 (đem ra bán)." },
-        { hanzi: "慢", pinyinNoTone: "man", pinyinTone: "màn", meaning: "chậm", detail: "• Cấu tạo: 忄 (tâm trạng thong thả)." },
-        { hanzi: "忙", pinyinNoTone: "mang", pinyinTone: "máng", meaning: "bận", detail: "• Cấu tạo: 忄 + vong (việc ngập đầu nên <b>bận (忙)</b>)." },
-        { hanzi: "每", pinyinNoTone: "mei", pinyinTone: "měi", meaning: "mỗi", detail: "• Cấu tạo: Mẹ 母 chăm chút từng cái." },
-        { hanzi: "妹妹", pinyinNoTone: "meimei", pinyinTone: "mèimei", meaning: "em gái", detail: "• Cấu tạo: 女 + 未 (chưa lớn)." },
-        { hanzi: "门", pinyinNoTone: "men", pinyinTone: "mén", meaning: "cửa", detail: "• Cấu tạo: Tượng hình cánh cửa." },
-        { hanzi: "米饭", pinyinNoTone: "mifan", pinyinTone: "mǐfàn", meaning: "cơm", detail: "• Cấu tạo: 米 (gạo) + 饭 (thức ăn)." },
+        { hanzi: "课", pinyinNoTone: "ke", pinyinTone: "kè", meaning: "bài học", detail: "• Cấu tạo: Bộ ngôn 讠." },
+        { hanzi: "快", pinyinNoTone: "kuai", pinyinTone: "kuài", meaning: "nhanh, vui", detail: "• Cấu tạo: 忄 + Chữ quyết." },
+        { hanzi: "快乐", pinyinNoTone: "kuaile", pinyinTone: "kuàilè", meaning: "vui vẻ", detail: "• Cấu tạo: 快 + 乐." },
+        { hanzi: "累", pinyinNoTone: "lei", pinyinTone: "lèi", meaning: "mệt", detail: "• Cấu tạo: 田 + 力." },
+        { hanzi: "离", pinyinNoTone: "li", pinyinTone: "lí", meaning: "cách", detail: "• Cấu tạo: Chim bay rời tổ." },
+        { hanzi: "两", pinyinNoTone: "liang", pinyinTone: "liǎng", meaning: "hai", detail: "• Cấu tạo: Cặp đôi." },
+        { hanzi: "零", pinyinNoTone: "ling", pinyinTone: "líng", meaning: "số 0", detail: "• Cấu tạo: 雨." },
+        { hanzi: "路", pinyinNoTone: "lu", pinyinTone: "lù", meaning: "đường", detail: "• Cấu tạo: 足." },
+        { hanzi: "旅游", pinyinNoTone: "lvyou", pinyinTone: "lǚyóu", meaning: "du lịch", detail: "• Cấu tạo: 旅 + 游." },
+        { hanzi: "卖", pinyinNoTone: "mai", pinyinTone: "mài", meaning: "bán", detail: "• Cấu tạo: 十 + 出." },
+        { hanzi: "慢", pinyinNoTone: "man", pinyinTone: "màn", meaning: "chậm", detail: "• Cấu tạo: 忄." },
+        { hanzi: "忙", pinyinNoTone: "mang", pinyinTone: "máng", meaning: "bận", detail: "• Cấu tạo: 忄 + Vong." },
+        { hanzi: "每", pinyinNoTone: "mei", pinyinTone: "měi", meaning: "mỗi", detail: "• Cấu tạo: Mẹ 母." },
+        { hanzi: "妹妹", pinyinNoTone: "meimei", pinyinTone: "mèimei", meaning: "em gái", detail: "• Cấu tạo: 女 + 未." },
+        { hanzi: "门", pinyinNoTone: "men", pinyinTone: "mén", meaning: "cửa", detail: "• Cửa ra vào." },
+        { hanzi: "米饭", pinyinNoTone: "mifan", pinyinTone: "mǐfàn", meaning: "cơm", detail: "• Cấu tạo: 米 + 饭." },
         { hanzi: "明天", pinyinNoTone: "mingtian", pinyinTone: "míngtiān", meaning: "ngày mai", detail: "• Cấu tạo: 日 + 月." },
-        { hanzi: "名字", pinyinNoTone: "mingzi", pinyinTone: "míngzi", meaning: "tên", detail: "• Cấu tạo: 名 (Miệng gọi) + 子." },
-        { hanzi: "拿", pinyinNoTone: "na", pinyinTone: "ná", meaning: "cầm, lấy", detail: "• Cấu tạo: Hợp hai tay để <b>cầm (拿)</b>." },
+        { hanzi: "名字", pinyinNoTone: "mingzi", pinyinTone: "míngzi", meaning: "tên", detail: "• Cấu tạo: 名 + 子." },
+        { hanzi: "拿", pinyinNoTone: "na", pinyinTone: "ná", meaning: "cầm, lấy", detail: "• Cấu tạo: Cầm nắm." },
         { hanzi: "哪", pinyinNoTone: "na", pinyinTone: "nǎ", meaning: "nào", detail: "• Cấu tạo: 口 + 那." },
-        { hanzi: "那", pinyinNoTone: "na", pinyinTone: "nà", meaning: "kia", detail: "• Cấu tạo: Vùng đất phía xa." },
-        { hanzi: "呢", pinyinNoTone: "ne", pinyinTone: "ne", meaning: "nhỉ", detail: "• Cấu tạo: Trợ từ cuối câu." },
-        { hanzi: "能", pinyinNoTone: "neng", pinyinTone: "néng", meaning: "có thể", detail: "• Cấu tạo: Năng lực, sức mạnh." },
+        { hanzi: "那", pinyinNoTone: "na", pinyinTone: "nà", meaning: "kia", detail: "• Cấu tạo: Phía xa." },
+        { hanzi: "呢", pinyinNoTone: "ne", pinyinTone: "ne", meaning: "nhỉ", detail: "• Cấu tạo: Trợ từ." },
+        { hanzi: "能", pinyinNoTone: "neng", pinyinTone: "néng", meaning: "có thể", detail: "• Cấu tạo: Năng lực." },
         { hanzi: "你", pinyinNoTone: "ni", pinyinTone: "nǐ", meaning: "bạn", detail: "• Cấu tạo: 亻 + 尔." },
-        { hanzi: "年", pinyinNoTone: "nian", pinyinTone: "nián", meaning: "năm", detail: "• Cấu tạo: Mùa màng thu hoạch lúa." },
-        { hanzi: "您", pinyinNoTone: "nin", pinyinTone: "nín", meaning: "ngài", detail: "• Cấu tạo: Bạn (你) thêm tâm (心) kính trọng." },
-        { hanzi: "牛奶", pinyinNoTone: "niunai", pinyinTone: "niúnǎi", meaning: "sữa bò", detail: "• Cấu tạo: 牛 (bò) + 奶 (sữa)." },
-        { hanzi: "女", pinyinNoTone: "nu", pinyinTone: "nǚ", meaning: "nữ", detail: "• Cấu tạo: Tượng hình phụ nữ." },
+        { hanzi: "年", pinyinNoTone: "nian", pinyinTone: "nián", meaning: "năm", detail: "• Cấu tạo: Mùa màng." },
+        { hanzi: "您", pinyinNoTone: "nin", pinyinTone: "nín", meaning: "ngài", detail: "• Cấu tạo: 你 + 心." },
+        { hanzi: "牛奶", pinyinNoTone: "niunai", pinyinTone: "niúnǎi", meaning: "sữa bò", detail: "• Cấu tạo: 牛 + 奶." },
+        { hanzi: "女", pinyinNoTone: "nu", pinyinTone: "nǚ", meaning: "nữ", detail: "• Cấu tạo: Phụ nữ." },
         { hanzi: "旁边", pinyinNoTone: "pangbian", pinyinTone: "pángbiān", meaning: "bên cạnh", detail: "• Cấu tạo: 旁 + 边." },
-        { hanzi: "跑步", pinyinNoTone: "paobu", pinyinTone: "pǎobù", meaning: "chạy bộ", detail: "• Cấu tạo: 跑 (Chân 足 + Bao) + 步 (Bước chân)." },
+        { hanzi: "跑步", pinyinNoTone: "paobu", pinyinTone: "pǎobù", meaning: "chạy bộ", detail: "• Cấu tạo: 跑 + 步." },
         { hanzi: "便宜", pinyinNoTone: "pianyiyi", pinyinTone: "piányi", meaning: "rẻ", detail: "• Cấu tạo: Giá trị thấp." },
-        { hanzi: "票", pinyinNoTone: "piao", pinyinTone: "piào", meaning: "vé", detail: "• Cấu tạo: Giấy tờ chứng nhận." },
+        { hanzi: "票", pinyinNoTone: "piao", pinyinTone: "piào", meaning: "vé", detail: "• Cấu tạo: Giấy tờ." },
         { hanzi: "妻子", pinyinNoTone: "qizi", pinyinTone: "qīzi", meaning: "vợ", detail: "• Cấu tạo: 妻 + 子." },
-        { hanzi: "起床", pinyinNoTone: "qichuang", pinyinTone: "qǐchuáng", meaning: "thức dậy", detail: "• Cấu tạo: 起 (Đứng dậy) + 床 (Giường)." },
-        { hanzi: "千", pinyinNoTone: "qian", pinyinTone: "qiān", meaning: "nghìn", detail: "• Cấu tạo: Số 1000." },
-        { hanzi: "铅笔", pinyinNoTone: "qianbi", pinyinTone: "qiānbǐ", meaning: "bút chì", detail: "• Cấu tạo: 铅 (Chì) + 笔 (Bút)." },
-        { hanzi: "晴", pinyinNoTone: "qing", pinyinTone: "qíng", meaning: "nắng", detail: "• Cấu tạo: 日 (mặt trời) chiếu sáng trong xanh." },
-        { hanzi: "去年", pinyinNoTone: "qunian", pinyinTone: "qùnián", meaning: "năm ngoái", detail: "• Cấu tạo: 去 (đã qua) + 年." },
-        { hanzi: "让", pinyinNoTone: "rang", pinyinTone: "ràng", meaning: "nhường", detail: "• Cấu tạo: 讠 (lời nói)." },
-        { hanzi: "日", pinyinNoTone: "ri", pinyinTone: "rì", meaning: "ngày", detail: "• Cấu tạo: Tượng hình mặt trời." },
+        { hanzi: "起床", pinyinNoTone: "qichuang", pinyinTone: "qǐchuáng", meaning: "thức dậy", detail: "• Cấu tạo: 起 + 床." },
+        { hanzi: "千", pinyinNoTone: "qian", pinyinTone: "qiān", meaning: "nghìn", detail: "• Cấu tạo: 1000." },
+        { hanzi: "铅笔", pinyinNoTone: "qianbi", pinyinTone: "qiānbǐ", meaning: "bút chì", detail: "• Cấu tạo: 铅 + 笔." },
+        { hanzi: "晴", pinyinNoTone: "qing", pinyinTone: "qíng", meaning: "nắng", detail: "• Cấu tạo: 日." },
+        { hanzi: "去年", pinyinNoTone: "qunian", pinyinTone: "qùnián", meaning: "năm ngoái", detail: "• Cấu tạo: 去 + 年." },
+        { hanzi: "让", pinyinNoTone: "rang", pinyinTone: "ràng", meaning: "nhường", detail: "• Cấu tạo: 讠." },
+        { hanzi: "日", pinyinNoTone: "ri", pinyinTone: "rì", meaning: "ngày", detail: "• Cấu tạo: Mặt trời." },
         { hanzi: "上班", pinyinNoTone: "shangban", pinyinTone: "shàngbān", meaning: "đi làm", detail: "• Cấu tạo: 上 + 班." },
-        { hanzi: "身体", pinyinNoTone: "shenti", pinyinTone: "shēntǐ", meaning: "sức khỏe", detail: "• Cấu tạo: 身 (thân) + 体." },
-        { hanzi: "生病", pinyinNoTone: "shengbing", pinyinTone: "shēngbìng", meaning: "ốm", detail: "• Cấu tạo: 生 + 病 (Bệnh tật 疒)." },
+        { hanzi: "身体", pinyinNoTone: "shenti", pinyinTone: "shēntǐ", meaning: "sức khỏe", detail: "• Cấu tạo: 身 + 体." },
+        { hanzi: "生病", pinyinNoTone: "shengbing", pinyinTone: "shēngbìng", meaning: "ốm", detail: "• Cấu tạo: 生 + 病." },
         { hanzi: "生日", pinyinNoTone: "shengri", pinyinTone: "shēngrì", meaning: "sinh nhật", detail: "• Cấu tạo: Sinh + Nhật." },
         { hanzi: "时间", pinyinNoTone: "shijian", pinyinTone: "shíjiān", meaning: "thời gian", detail: "• Cấu tạo: 时 + 间." },
-        { hanzi: "事情", pinyinNoTone: "shiqing", pinyinTone: "shìqing", meaning: "sự việc", detail: "• Cấu tạo: Sự vụ + Tình huống." },
-        { hanzi: "手表", pinyinNoTone: "shoubiao", pinyinTone: "shǒubiǎo", meaning: "đồng hồ", detail: "• Cấu tạo: 手 (Tay) + 表." },
-        { hanzi: "手机", pinyinNoTone: "shouji", pinyinTone: "shǒujī", meaning: "điện thoại", detail: "• Cấu tạo: 手 (Tay) + 机 (Máy)." },
+        { hanzi: "事情", pinyinNoTone: "shiqing", pinyinTone: "shìqing", meaning: "sự việc", detail: "• Cấu tạo: 事 + 情." },
+        { hanzi: "手表", pinyinNoTone: "shoubiao", pinyinTone: "shǒubiǎo", meaning: "đồng hồ", detail: "• Cấu tạo: 手 + 表." },
+        { hanzi: "手机", pinyinNoTone: "shouji", pinyinTone: "shǒujī", meaning: "điện thoại", detail: "• Cấu tạo: 手 + 机." },
         { hanzi: "说话", pinyinNoTone: "shuohua", pinyinTone: "shuōhuà", meaning: "nói chuyện", detail: "• Cấu tạo: 说 + 话." },
-        { hanzi: "送", pinyinNoTone: "song", pinyinTone: "sòng", meaning: "tặng", detail: "• Cấu tạo: 辶 (tiễn đưa/tặng)." },
-        { hanzi: "所以", pinyinNoTone: "suoyi", pinyinTone: "suǒyǐ", meaning: "cho nên", detail: "• Cấu tạo: Do đó, vì thế." },
-        { hanzi: "它", pinyinNoTone: "ta", pinyinTone: "tā", meaning: "nó", detail: "• Cấu tạo: Đại từ vật/thú." },
-        { hanzi: "踢足球", pinyinNoTone: "tizuqiu", pinyinTone: "tī zúqiú", meaning: "đá bóng", detail: "• Cấu tạo: Chân đá + Bóng." },
-        { hanzi: "题", pinyinNoTone: "ti", pinyinTone: "tí", meaning: "đề thi", detail: "• Cấu tạo: Đề mục câu hỏi." },
-        { hanzi: "跳舞", pinyinNoTone: "tiaowu", pinyinTone: "tiàowǔ", meaning: "múa", detail: "• Cấu tạo: Nhảy + Múa." },
-        { hanzi: "外", pinyinNoTone: "wai", pinyinTone: "wài", meaning: "ngoài", detail: "• Cấu tạo: 夕 + 卜." },
-        { hanzi: "玩", pinyinNoTone: "wan", pinyinTone: "wán", meaning: "chơi", detail: "• Cấu tạo: Vui đùa giải trí." },
-        { hanzi: "晚上", pinyinNoTone: "wangshang", pinyinTone: "wǎnshang", meaning: "tối", detail: "• Cấu tạo: Tối muộn." },
-        { hanzi: "问", pinyinNoTone: "wen", pinyinTone: "wèn", meaning: "hỏi", detail: "• Cấu tạo: 门 (Gõ cửa hỏi)." },
-        { hanzi: "问题", pinyinNoTone: "wenti", pinyinTone: "wèntí", meaning: "vấn đề", detail: "• Cấu tạo: Hỏi + Đề." },
-        { hanzi: "西瓜", pinyinNoTone: "xigua", pinyinTone: "xīguā", meaning: "dưa hấu", detail: "• Cấu tạo: Tây + Quả dưa." },
+        { hanzi: "送", pinyinNoTone: "song", pinyinTone: "sòng", meaning: "tặng", detail: "• Cấu tạo: 辶." },
+        { hanzi: "所以", pinyinNoTone: "suoyi", pinyinTone: "suǒyǐ", meaning: "cho nên", detail: "• Cấu tạo: Do đó." },
+        { hanzi: "它", pinyinNoTone: "ta", pinyinTone: "tā", meaning: "nó", detail: "• Cấu tạo: Đại từ." },
+        { hanzi: "踢足球", pinyinNoTone: "tizuqiu", pinyinTone: "tī zúqiú", meaning: "đá bóng", detail: "• Cấu tạo: 踢 + 足 + 球." },
+        { hanzi: "题", pinyinNoTone: "ti", pinyinTone: "tí", meaning: "đề thi", detail: "• Cấu tạo: Câu hỏi." },
+        { hanzi: "跳舞", pinyinNoTone: "tiaowu", pinyinTone: "tiàowǔ", meaning: "múa", detail: "• Cấu tạo: 跳 + 舞." },
+        { hanzi: "外", pinyinNoTone: "wai", pinyinTone: "wài", meaning: "ngoài", detail: "• Cấu tạo: Bên ngoài." },
+        { hanzi: "玩", pinyinNoTone: "wan", pinyinTone: "wán", meaning: "chơi", detail: "• Cấu tạo: Giải trí." },
+        { hanzi: "晚上", pinyinNoTone: "wangshang", pinyinTone: "wǎnshang", meaning: "tối", detail: "• Cấu tạo: Buổi tối." },
+        { hanzi: "问", pinyinNoTone: "wen", pinyinTone: "wèn", meaning: "hỏi", detail: "• Cấu tạo: 门." },
+        { hanzi: "问题", pinyinNoTone: "wenti", pinyinTone: "wèntí", meaning: "vấn đề", detail: "• Cấu tạo: 问 + 题." },
+        { hanzi: "西瓜", pinyinNoTone: "xigua", pinyinTone: "xīguā", meaning: "dưa hấu", detail: "• Cấu tạo: 西 + 瓜." },
         { hanzi: "希望", pinyinNoTone: "xiwang", pinyinTone: "xīwàng", meaning: "hy vọng", detail: "• Cấu tạo: Mong mỏi." },
-        { hanzi: "洗", pinyinNoTone: "xi", pinyinTone: "xǐ", meaning: "rửa", detail: "• Cấu tạo: 氵 (Nước rửa sạch)." },
-        { hanzi: "向", pinyinNoTone: "xiang", pinyinTone: "xiàng", meaning: "hướng về", detail: "• Cấu tạo: Hướng về ánh sáng." },
-        { hanzi: "小时", pinyinNoTone: "xiaoshi", pinyinTone: "xiǎoshí", meaning: "tiếng (giờ)", detail: "• Cấu tạo: Giờ đồng hồ." },
-        { hanzi: "笑", pinyinNoTone: "xiao", pinyinTone: "xiào", meaning: "cười", detail: "• Cấu tạo: Tươi <b>cười (笑)</b>." },
-        { hanzi: "新", pinyinNoTone: "xin", pinyinTone: "xīn", meaning: "mới", detail: "• Cấu tạo: Rìu chặt củi mới." },
+        { hanzi: "洗", pinyinNoTone: "xi", pinyinTone: "xǐ", meaning: "rửa", detail: "• Cấu tạo: 氵." },
+        { hanzi: "向", pinyinNoTone: "xiang", pinyinTone: "xiàng", meaning: "hướng về", detail: "• Cấu tạo: Hướng về." },
+        { hanzi: "小时", pinyinNoTone: "xiaoshi", pinyinTone: "xiǎoshí", meaning: "tiếng (giờ)", detail: "• Cấu tạo: Giờ." },
+        { hanzi: "笑", pinyinNoTone: "xiao", pinyinTone: "xiào", meaning: "cười", detail: "• Cấu tạo: Cười." },
+        { hanzi: "新", pinyinNoTone: "xin", pinyinTone: "xīn", meaning: "mới", detail: "• Cấu tạo: Mới." },
         { hanzi: "姓", pinyinNoTone: "xing", pinyinTone: "xìng", meaning: "họ", detail: "• Cấu tạo: 女 + 生." },
-        { hanzi: "休息", pinyinNoTone: "xiuxi", pinyinTone: "xiūxi", meaning: "nghỉ ngơi", detail: "• Cấu tạo: Người 亻 dựa cây 木 để <b>nghỉ (休息)</b>." },
-        { hanzi: "雪", pinyinNoTone: "xue", pinyinTone: "xuě", meaning: "tuyết", detail: "• Cấu tạo: 雨 (Mưa lạnh hóa <b>tuyết (雪)</b>)." },
-        { hanzi: "颜色", pinyinNoTone: "yanse", pinyinTone: "yánsè", meaning: "màu sắc", detail: "• Cấu tạo: Khuôn mặt + Biểu cảm." },
-        { hanzi: "眼睛", pinyinNoTone: "yanjing", pinyinTone: "yǎnjīng", meaning: "mắt", detail: "• Cấu tạo: Mắt 目." },
-        { hanzi: "羊肉", pinyinNoTone: "yangrou", pinyinTone: "yángròu", meaning: "thịt dê", detail: "• Cấu tạo: Dê + Thịt." },
-        { hanzi: "药", pinyinNoTone: "yao", pinyinTone: "yào", meaning: "thuốc", detail: "• Cấu tạo: 艹 (Thảo dược chữa bệnh)." },
-        { hanzi: "要", pinyinNoTone: "yao", pinyinTone: "yào", meaning: "muốn", detail: "• Cấu tạo: Nhu cầu mong muốn." },
-        { hanzi: "也", pinyinNoTone: "ye", pinyinTone: "yě", meaning: "cũng", detail: "• Cấu tạo: Ý nghĩa tương tự." },
-        { hanzi: "阴", pinyinNoTone: "yin", pinyinTone: "yīn", meaning: "âm u", detail: "• Cấu tạo: 阝 + Mây mù." },
-        { hanzi: "因为", pinyinNoTone: "yinwei", pinyinTone: "yīnwèi", meaning: "bởi vì", detail: "• Cấu tạo: Nguyên nhân." },
-        { hanzi: "游泳", pinyinNoTone: "youyong", pinyinTone: "yóuyǒng", meaning: "bơi lội", detail: "• Cấu tạo: 氵 (Bơi dưới nước)." },
-        { hanzi: "右边", pinyinNoTone: "youbian", pinyinTone: "yòubian", meaning: "bên phải", detail: "• Cấu tạo: Phải + Lề." },
-        { hanzi: "鱼", pinyinNoTone: "yu", pinyinTone: "yú", meaning: "cá", detail: "• Cấu tạo: Tượng hình con cá." },
-        { hanzi: "元", pinyinNoTone: "yuan", pinyinTone: "yuán", meaning: "tệ (đồng)", detail: "• Cấu tạo: Đơn vị tiền tệ." },
-        { hanzi: "远", pinyinNoTone: "yuan", pinyinTone: "yuǎn", meaning: "xa", detail: "• Cấu tạo: 辶 (Khoảng cách xa)." },
-        { hanzi: "运动", pinyinNoTone: "yundong", pinyinTone: "yùndòng", meaning: "vận động", detail: "• Cấu tạo: Chuyển động + Sức lực." },
-        { hanzi: "再", pinyinNoTone: "zai", pinyinTone: "zài", meaning: "lại", detail: "• Cấu tạo: Lần nữa." },
-        { hanzi: "早上", pinyinNoTone: "zaoshang", pinyinTone: "zǎoshang", meaning: "sáng", detail: "• Cấu tạo: Mặt trời ló dạng ban mai." },
-        { hanzi: "张", pinyinNoTone: "zhang", pinyinTone: "zhāng", meaning: "tấm", detail: "• Cấu tạo: 弓 (Cây cung)." },
-        { hanzi: "丈夫", pinyinNoTone: "zhangfu", pinyinTone: "zhàngfu", meaning: "chồng", detail: "• Cấu tạo: Trưởng thành." },
-        { hanzi: "找", pinyinNoTone: "zhao", pinyinTone: "zhǎo", meaning: "tìm", detail: "• Cấu tạo: 扌 (Dùng tay <b>tìm (找)</b>)." },
-        { hanzi: "着", pinyinNoTone: "zhe", pinyinTone: "zhe", meaning: "đang", detail: "• Cấu tạo: Trợ từ tiếp diễn." },
-        { hanzi: "真", pinyinNoTone: "zhen", pinyinTone: "zhēn", meaning: "thật", detail: "• Cấu tạo: Sự thực rõ ràng." },
-        { hanzi: "正在", pinyinNoTone: "zhengzai", pinyinTone: "zhèngzài", meaning: "đang", detail: "• Cấu tạo: Ngay lúc này." },
-        { hanzi: "知道", pinyinNoTone: "zhidao", pinyinTone: "zhīdào", meaning: "biết", detail: "• Cấu tạo: Miệng nói + Đường đi." },
-        { hanzi: "准备", pinyinNoTone: "zhunbei", pinyinTone: "zhǔnbèi", meaning: "chuẩn bị", detail: "• Cấu tạo: Sắp xếp sẵn sàng." },
-        { hanzi: "自行车", pinyinNoTone: "zixingche", pinyinTone: "zìxíngchē", meaning: "xe đạp", detail: "• Cấu tạo: Tự + Đạp + Xe." },
-        { hanzi: "走", pinyinNoTone: "zou", pinyinTone: "zǒu", meaning: "đi", detail: "• Cấu tạo: Tượng hình người sải chân <b>đi (走)</b>." },
-        { hanzi: "最", pinyinNoTone: "zui", pinyinTone: "zuì", meaning: "nhất", detail: "• Cấu tạo: Chiếm vị trí hàng đầu <b>nhất (最)</b>." },
-        { hanzi: "左边", pinyinNoTone: "zuobian", pinyinTone: "zuǒbian", meaning: "bên trái", detail: "• Cấu tạo: Trái + Lề." }
+        { hanzi: "休息", pinyinNoTone: "xiuxi", pinyinTone: "xiūxi", meaning: "nghỉ ngơi", detail: "• Cấu tạo: 休 + 息." },
+        { hanzi: "雪", pinyinNoTone: "xue", pinyinTone: "xuě", meaning: "tuyết", detail: "• Cấu tạo: 雨." },
+        { hanzi: "颜色", pinyinNoTone: "yanse", pinyinTone: "yánsè", meaning: "màu sắc", detail: "• Cấu tạo: 颜 + 色." },
+        { hanzi: "眼睛", pinyinNoTone: "yanjing", pinyinTone: "yǎnjīng", meaning: "mắt", detail: "• Cấu tạo: 眼 + 睛." },
+        { hanzi: "羊肉", pinyinNoTone: "yangrou", pinyinTone: "yángròu", meaning: "thịt dê", detail: "• Cấu tạo: 羊 + 肉." },
+        { hanzi: "药", pinyinNoTone: "yao", pinyinTone: "yào", meaning: "thuốc", detail: "• Cấu tạo: 艹." },
+        { hanzi: "要", pinyinNoTone: "yao", pinyinTone: "yào", meaning: "muốn", detail: "• Cấu tạo: Muốn." },
+        { hanzi: "也", pinyinNoTone: "ye", pinyinTone: "yě", meaning: "cũng", detail: "• Cấu tạo: Cũng." },
+        { hanzi: "阴", pinyinNoTone: "yin", pinyinTone: "yīn", meaning: "âm u", detail: "• Cấu tạo: 阝." },
+        { hanzi: "因为", pinyinNoTone: "yinwei", pinyinTone: "yīnwèi", meaning: "bởi vì", detail: "• Cấu tạo: Vì." },
+        { hanzi: "游泳", pinyinNoTone: "youyong", pinyinTone: "yóuyǒng", meaning: "bơi lội", detail: "• Cấu tạo: 游 + 泳." },
+        { hanzi: "右边", pinyinNoTone: "youbian", pinyinTone: "yòubian", meaning: "bên phải", detail: "• Cấu tạo: 右 + 边." },
+        { hanzi: "鱼", pinyinNoTone: "yu", pinyinTone: "yú", meaning: "cá", detail: "• Cấu tạo: Cá." },
+        { hanzi: "元", pinyinNoTone: "yuan", pinyinTone: "yuán", meaning: "tệ (đồng)", detail: "• Cấu tạo: Tệ." },
+        { hanzi: "远", pinyinNoTone: "yuan", pinyinTone: "yuǎn", meaning: "xa", detail: "• Cấu tạo: 辶." },
+        { hanzi: "运动", pinyinNoTone: "yundong", pinyinTone: "yùndòng", meaning: "vận động", detail: "• Cấu tạo: 运 + 动." },
+        { hanzi: "再", pinyinNoTone: "zai", pinyinTone: "zài", meaning: "lại", detail: "• Cấu tạo: Lại." },
+        { hanzi: "早上", pinyinNoTone: "zaoshang", pinyinTone: "zǎoshang", meaning: "sáng", detail: "• Cấu tạo: 早 + 上." },
+        { hanzi: "张", pinyinNoTone: "zhang", pinyinTone: "zhāng", meaning: "tấm", detail: "• Cấu tạo: 弓." },
+        { hanzi: "丈夫", pinyinNoTone: "zhangfu", pinyinTone: "zhàngfu", meaning: "chồng", detail: "• Cấu tạo: 丈 + 夫." },
+        { hanzi: "找", pinyinNoTone: "zhao", pinyinTone: "zhǎo", meaning: "tìm", detail: "• Cấu tạo: 扌." },
+        { hanzi: "着", pinyinNoTone: "zhe", pinyinTone: "zhe", meaning: "đang", detail: "• Cấu tạo: Trợ từ." },
+        { hanzi: "真", pinyinNoTone: "zhen", pinyinTone: "zhēn", meaning: "thật", detail: "• Cấu tạo: Thật." },
+        { hanzi: "正在", pinyinNoTone: "zhengzai", pinyinTone: "zhèngzài", meaning: "đang", detail: "• Cấu tạo: 正 + 在." },
+        { hanzi: "知道", pinyinNoTone: "zhidao", pinyinTone: "zhīdào", meaning: "biết", detail: "• Cấu tạo: 知 + 道." },
+        { hanzi: "准备", pinyinNoTone: "zhunbei", pinyinTone: "zhǔnbèi", meaning: "chuẩn bị", detail: "• Cấu tạo: 准 + 备." },
+        { hanzi: "自行车", pinyinNoTone: "zixingche", pinyinTone: "zìxíngchē", meaning: "xe đạp", detail: "• Cấu tạo: 自 + 行 + 车." },
+        { hanzi: "走", pinyinNoTone: "zou", pinyinTone: "zǒu", meaning: "đi", detail: "• Cấu tạo: Đi." },
+        { hanzi: "最", pinyinNoTone: "zui", pinyinTone: "zuì", meaning: "nhất", detail: "• Cấu tạo: Nhất." },
+        { hanzi: "左边", pinyinNoTone: "zuobian", pinyinTone: "zuǒbian", meaning: "bên trái", detail: "• Cấu tạo: 左 + 边." }
     ];
 
     let currentData = hsk2Data;
@@ -620,7 +610,6 @@
         document.getElementById('aiResultMsg').style.display = 'none';
         updateStats();
 
-        // Nếu đang ở chế độ trắc nghiệm A-B-C-D, sinh ra 4 đáp án ngẫu nhiên
         const mode = document.getElementById('modeSelect').value;
         if (mode === 'quiz') {
             setupQuizOptions(currentWord);
@@ -631,11 +620,18 @@
         const quizContainer = document.getElementById('quizContainer');
         quizContainer.innerHTML = '';
 
-        // Lấy 3 đáp án sai ngẫu nhiên từ danh sách
-        let wrongOptions = currentData.filter(item => item.hanzi !== correctWord.hanzi);
-        wrongOptions = shuffleArray(wrongOptions).slice(0, 3);
+        // TÍNH LOGIC MỚI: Lọc các từ sai có cùng số lượng chữ Hán với từ đúng
+        const correctLength = correctWord.hanzi.length;
+        let sameLengthOptions = currentData.filter(item => item.hanzi !== correctWord.hanzi && item.hanzi.length === correctLength);
 
-        // Gom chung đáp án đúng và 3 đáp án sai rồi xáo trộn lên
+        // Nếu số lượng từ cùng chiều dài không đủ 3 từ, lấy bù bằng tất cả các từ còn lại
+        if (sameLengthOptions.length < 3) {
+            let fallbackOptions = currentData.filter(item => item.hanzi !== correctWord.hanzi);
+            sameLengthOptions = [...sameLengthOptions, ...fallbackOptions];
+        }
+
+        let wrongOptions = shuffleArray(sameLengthOptions).slice(0, 3);
+
         let options = [...wrongOptions, correctWord];
         options = shuffleArray(options);
 
@@ -653,7 +649,6 @@
         const quizContainer = document.getElementById('quizContainer');
         const buttons = quizContainer.getElementsByTagName('button');
 
-        // Vô hiệu hóa tất cả các nút sau khi chọn
         for (let btn of buttons) {
             btn.disabled = true;
             if (btn.innerHTML.includes(correctWord.pinyinTone)) {
@@ -694,7 +689,7 @@
         if (userVal === currentWord.pinyinNoTone) {
             msg.style.color = "#4ec9b0";
             msg.innerHTML = `✅ <b>Chính xác!</b><br>` +
-                            `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${currentWord.pinyinTone}]</span><br>` +
+                            `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${correctWord.pinyinTone}]</span><br>` +
                             `• Nghĩa tiếng Việt: <b>${currentWord.meaning}</b><br>` +
                             `• <i>Phân tích & Mẹo nhớ chi tiết:</i><br>${currentWord.detail}`;
             correctCount++;
@@ -711,11 +706,10 @@
         msg.style.display = 'block';
         msg.style.color = "#dcdcaa";
         msg.innerHTML = `💡 <b>Đáp án & Phân tích chi tiết:</b><br>` +
-                        `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${currentWord.pinyinTone}]</span><br>` +
-                        `• Nghĩa tiếng Việt: <b>${currentWord.meaning}</b><br>` +
+                        `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${correctWord.pinyinTone}]</span><br>` +
+                        `• Nghĩa tiếng Việt: <b>${correctWord.meaning}</b><br>` +
                         `• <i>Phân tích & Mẹo nhớ chi tiết:</i><br>${currentWord.detail}`;
 
-        // Nếu đang ở chế độ trắc nghiệm, tự động bật sáng đáp án đúng cho người dùng thấy
         const mode = document.getElementById('modeSelect').value;
         if (mode === 'quiz') {
             const quizContainer = document.getElementById('quizContainer');
@@ -780,7 +774,6 @@
         });
     }
 
-    // Khởi chạy mặc định
     changeSettings();
 </script>
 
