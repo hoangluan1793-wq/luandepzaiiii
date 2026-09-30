@@ -216,6 +216,7 @@
             <select id="levelSelect" onchange="changeSettings()">
                 <option value="hsk1">HSK 1 (150 từ)</option>
                 <option value="hsk2" selected>HSK 2 (153 từ)</option>
+                <option value="hardWords" style="color: #ff7b72; font-weight: bold;">⭐ Ôn tập từ khó (Đã lưu)</option>
             </select>
         </div>
         <div>
@@ -567,13 +568,29 @@
         { hanzi: "自行车", pinyinNoTone: "zixingche", pinyinTone: "zìxíngchē", meaning: "xe đạp", detail: "• <b>Mặt chữ:</b> 自 + 行 + 车." },
         { hanzi: "走", pinyinNoTone: "zou", pinyinTone: "zǒu", meaning: "đi", detail: "• <b>Mặt chữ:</b> Sải chân đi." },
         { hanzi: "最", pinyinNoTone: "zui", pinyinTone: "zuì", meaning: "nhất", detail: "• <b>Mặt chữ:</b> Vị trí đầu." },
-        { hanzi: "左边", pinyinNoTone: "zuobian", pinyinTone: "zuǒbian", meaning: "trái", detail: "• <b>Mặt chữ:</b> Trái + <b>辶</b>." }
+        { hanzi: "左边", pinyinNoTone: "zuobian", pinyinTone: "zuǒbian", meaning: "tr trái", detail: "• <b>Mặt chữ:</b> Trái + <b>辶</b>." }
     ];
 
     let currentData = hsk2Data;
     let currentList = [];
     let currentIndex = 0;
     let correctCount = 0;
+
+    // Lấy danh sách từ khó từ LocalStorage (nếu có)
+    function getHardWords() {
+        let stored = localStorage.getItem('hsk_hard_words');
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    // Lưu từ sai vào danh sách từ khó
+    function addHardWord(word) {
+        let hardWords = getHardWords();
+        // Kiểm tra xem từ này đã có trong danh sách chưa để tránh trùng lặp
+        if (!hardWords.some(item => item.hanzi === word.hanzi)) {
+            hardWords.push(word);
+            localStorage.setItem('hsk_hard_words', JSON.stringify(hardWords));
+        }
+    }
 
     function shuffleArray(array) {
         let arr = [...array];
@@ -590,8 +607,13 @@
 
         if (level === 'hsk1') {
             currentData = hsk1Data;
-        } else {
+        } else if (level === 'hsk2') {
             currentData = hsk2Data;
+        } else if (level === 'hardWords') {
+            currentData = getHardWords();
+            if (currentData.length === 0) {
+                alert("Danh sách từ khó đang trống! Hãy làm bài và trả lời sai, các từ đó sẽ tự động được lưu vào đây.");
+            }
         }
 
         if (mode === 'quiz') {
@@ -613,8 +635,15 @@
     }
 
     function loadCard() {
+        if (currentList.length === 0) {
+            document.getElementById('hanziCard').innerText = "Ø";
+            document.getElementById('quizContainer').innerHTML = "<p style='text-align:center; color:#aaa;'>Chưa có từ nào trong danh sách này.</p>";
+            document.getElementById('stats').innerText = "Danh sách trống";
+            return;
+        }
+
         if (currentIndex >= currentList.length) {
-            alert(`🎉 Chúc mừng bạn đã hoàn thành xuất sắc tất cả ${currentList.length} từ vựng! Chương trình sẽ tự động xáo trộn lại để bạn ôn tập tiếp.`);
+            alert(`🎉 Chúc mừng bạn đã ôn hết vòng này! Chương trình sẽ xáo trộn lại để bạn tiếp tục ôn luyện.`);
             initQuiz();
             return;
         }
@@ -642,11 +671,13 @@
         const quizContainer = document.getElementById('quizContainer');
         quizContainer.innerHTML = '';
 
+        // Dùng toàn bộ từ vựng hsk1 và hsk2 để làm mồi nhiễu phong phú hơn
+        const allPool = [...hsk1Data, ...hsk2Data];
         const correctLength = correctWord.hanzi.length;
-        let sameLengthOptions = currentData.filter(item => item.hanzi !== correctWord.hanzi && item.hanzi.length === correctLength);
+        let sameLengthOptions = allPool.filter(item => item.hanzi !== correctWord.hanzi && item.hanzi.length === correctLength);
 
         if (sameLengthOptions.length < 3) {
-            let fallbackOptions = currentData.filter(item => item.hanzi !== correctWord.hanzi);
+            let fallbackOptions = allPool.filter(item => item.hanzi !== correctWord.hanzi);
             sameLengthOptions = [...sameLengthOptions, ...fallbackOptions];
         }
 
@@ -690,8 +721,12 @@
         } else {
             clickedBtn.classList.add('incorrect');
             msg.style.color = "#f14c4c";
-            msg.innerHTML = `❌ <b>Chưa chính xác!</b> Đáp án đúng là: [${correctWord.pinyinTone}] — ${correctWord.meaning}<br>` +
+            msg.innerHTML = `❌ <b>Chưa chính xác!</b> Từ này đã được thêm vào <b>⭐ Ôn tập từ khó</b>.<br>` +
+                            `• Đáp án đúng: [${correctWord.pinyinTone}] — ${correctWord.meaning}<br>` +
                             `• <i>Nhận diện mặt chữ & Mẹo nhớ:</i><br>${correctWord.detail}`;
+            
+            // Ghi nhớ từ khó vào LocalStorage
+            addHardWord(correctWord);
         }
     }
 
@@ -715,12 +750,19 @@
             updateStats();
         } else {
             msg.style.color = "#f14c4c";
-            msg.innerHTML = "❌ Chưa đúng, bạn hãy thử gõ lại Pinyin hoặc bấm Bỏ qua để xem đáp án nhé!";
+            msg.innerHTML = `❌ <b>Chưa đúng!</b> Từ này đã được lưu vào <b>⭐ Ôn tập từ khó</b>.<br>` +
+                            `• Đáp án đúng: [${currentWord.pinyinTone}] — ${currentWord.meaning}<br>` +
+                            `• <i>Nhận diện mặt chữ & Mẹo nhớ:</i><br>${currentWord.detail}`;
+            
+            // Ghi nhớ từ khó vào LocalStorage
+            addHardWord(currentWord);
         }
     }
 
     function skipAndShowAnswer() {
         const currentWord = currentList[currentIndex];
+        if (!currentWord) return;
+        
         const msg = document.getElementById('resultMsg');
         msg.style.display = 'block';
         msg.style.color = "#dcdcaa";
@@ -728,6 +770,9 @@
                         `• Pinyin: <span style="color: #ff7b72; font-size: 18px;">[${currentWord.pinyinTone}]</span><br>` +
                         `• Nghĩa tiếng Việt: <b>${currentWord.meaning}</b><br>` +
                         `• <i>Nhận diện mặt chữ & Mẹo nhớ:</i><br>${currentWord.detail}`;
+
+        // Bỏ qua cũng tính là chưa thuộc, lưu luôn vào từ khó
+        addHardWord(currentWord);
 
         const mode = document.getElementById('modeSelect').value;
         if (mode === 'quiz') {
@@ -775,8 +820,12 @@
             alert("Vui lòng viết câu của bạn!");
             return;
         }
+        if (!currentWord) {
+            alert("Chưa có từ vựng hiện tại!");
+            return;
+        }
 
-        aiMsg.style.color = "#d4d4d4";
+        aiMsg.style.color = "#dcdcaa";
         aiMsg.innerText = "🤖 AI đang phân tích câu của bạn...";
 
         fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
